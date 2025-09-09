@@ -281,7 +281,13 @@ Usage (pick one):
     render(list);
   }
 
-  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]); }
+<script>
+  function esc(s){
+    return (s == null ? '' : String(s))
+      .replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>  
+  
   function tint(color, alpha){
     const hex = String(color||'').replace('#','');
     if (/^[0-9a-fA-F]{6}$/.test(hex)) {
