@@ -41,16 +41,9 @@
     .pad{padding:14px}
     .name{font-weight:700; font-size:1.05rem; margin:0 0 6px 0}
     .muted{color:#475569; font-size:.9rem}
-    .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
-    .chip{font-size:.75rem; padding:4px 8px; border-radius:999px; border:1px solid #0000; display:inline-flex; align-items:center; gap:6px}
-    .chip.status{color:#0b0b0b; background:#eefbf1; border-color:#00000010}
-    .chip.status::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--dot-color,var(--card-edge)); box-shadow:0 0 4px var(--dot-color,var(--card-edge)); animation:pulse 2s ease-in-out infinite}
-    @keyframes pulse{0%{box-shadow:0 0 0 0 var(--dot-color)}70%{box-shadow:0 0 0 6px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
-    @media (prefers-reduced-motion: reduce){
-      .chip.status::before{animation:none}
-    }
-    .chip.haz{color:#0b0b0b; background:#fff; border-color:#00000020}
-    .chip.access{color:#0b0b0b; background:#ecfeff; border:1px solid #00000010}
+    .chips{display:flex; flex-direction:column; gap:2px; margin-top:8px}
+    .chip{font-size:.9rem; display:flex; align-items:center; gap:8px}
+    .chip::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--dot-color,var(--card-edge)); box-shadow:0 0 4px var(--dot-color,var(--card-edge))}
     .row{display:flex; gap:8px; align-items:center; margin-top:6px}
     .row strong{font-weight:600}
     .actions{margin-top:auto; display:flex; gap:8px; padding:12px; border-top:1px solid var(--card-edge)}
@@ -245,15 +238,6 @@ Usage (pick one):
   }
   function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-  function tint(color, alpha){
-    const hex = String(color||'').replace('#','');
-    if (/^[0-9a-fA-F]{6}$/.test(hex)) {
-      const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
-      return 'rgba('+r+','+g+','+b+','+alpha+')';
-    }
-    return color;
-  }
-
   // Filters
   function setupFilters(data){
     fillSelect(els.fCategory, uniqueSorted(data,'category'));
@@ -305,9 +289,9 @@ Usage (pick one):
     els.count.textContent = list.length + ' machine' + (list.length===1?'':'s') + ' shown';
     const html = list.map(m => {
       const chips = [
-        '<span class="chip status" style="--dot-color:'+esc(m.status_color)+';background:'+tint(m.status_color,0.12)+';border-color:'+tint(m.status_color,0.2)+'">'+esc(m.status||'—')+'</span>',
-        (m.hazard_class ? '<span class="chip haz" style="background:'+tint(m.hazard_color,0.10)+';border-color:'+tint(m.hazard_color,0.2)+'">Hazard '+esc(m.hazard_class)+'</span>' : ''),
-        ...((m.access_chips||[]).map(c => '<span class="chip access" style="background:'+tint(cssVar('--access'),0.10)+';border-color:'+tint(cssVar('--access'),0.2)+'">'+esc(c)+'</span>'))
+        '<div class="chip" style="--dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
+        (m.hazard_class ? '<div class="chip" style="--dot-color:'+esc(m.hazard_color)+'">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
+        ...((m.access_chips||[]).map(c => '<div class="chip" style="--dot-color:'+cssVar('--access')+'">'+esc(c)+'</div>'))
       ].join('');
       const thumb = m.thumbnail_url ? '<img class="thumb" alt="" loading="lazy" src="'+esc(m.thumbnail_url)+'">' : '<div class="thumb"></div>';
       const link  = m.detail_url ? '<a class="btn" href="'+esc(m.detail_url)+'" target="_blank" rel="noopener">Details</a>' : '';
