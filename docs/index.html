@@ -7,10 +7,15 @@
   <style>
     :root{
       --page-grey:#747678;
-      --ok:#22C55E;
-      --warn:#F59E0B;
+
+      /* UCSD palette from your request */
+      --ucsd-blue:#00C6D7;   /* access */
+      --ucsd-green:#6E963B;  /* ok */
+      --ucsd-yellow:#F3E500; /* warn */
+
+      /* keep red for "Down" */
       --danger:#EF4444;
-      --access:#00C6D7;
+
       --text:#0f172a;
       --card:#ffffff;
       --card-edge:#e5e7eb;
@@ -27,48 +32,42 @@
       width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--card-edge); background:#fff
     }
     .toolbar button{cursor:pointer; border-color: transparent; background:#111827; color:#fff}
-    .grid{
-      margin-top:16px;
-      display:grid; gap:16px;
-      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
-    }
+
+    .grid{margin-top:16px; display:grid; gap:16px; grid-template-columns: repeat(auto-fill, minmax(260px,1fr));}
     .card{
       display:flex; flex-direction:column; background:var(--card); border:1px solid var(--card-edge);
-      border-radius:16px; overflow:hidden;
-      box-shadow: 0 10px 14px rgba(0,0,0,.06);
+      border-radius:16px; overflow:hidden; box-shadow:0 10px 14px rgba(0,0,0,.06);
     }
     .thumb{aspect-ratio:16/9; background:#f1f5f9; display:block; width:100%; object-fit:cover}
     .pad{padding:14px}
     .name{font-weight:700; font-size:1.05rem; margin:0 0 6px 0}
     .muted{color:#475569; font-size:.9rem}
-    .chips{display:flex; flex-direction:column; gap:4px; margin-top:8px}
 
-    /* Base chip */
+    .chips{display:flex; flex-direction:column; gap:4px; margin-top:8px}
+    /* compact, subtle chips */
     .chip{
-      font-size:.9rem; display:flex; align-items:center; gap:8px;
-      padding:6px 10px; border-radius:9999px;
-      border:1px solid var(--card-edge); background:#fff; color:#111827;
-      line-height:1;
+      --chip-color:#e5e7eb; /* default fallback */
+      font-size:.8rem;
+      display:flex; align-items:center; gap:6px;
+      padding:4px 8px; border-radius:9999px; line-height:1;
+      /* subtle border & translucent fill based on --chip-color */
+      border:1px solid color-mix(in srgb, var(--chip-color) 35%, #ffffff 65%);
+      background: color-mix(in srgb, var(--chip-color) 14%, transparent);
+      color: var(--text);
       width:max-content;
     }
-    /* Filled variant; we set --chip-bg inline per chip */
-    .chip.filled{
-      border-color: transparent;
-      background: var(--chip-bg, #e5e7eb);
-      color: #fff; /* ensure contrast on strong hues */
-    }
 
-    /* Only STATUS chip gets the glowing dot */
+    /* STATUS chip gets the glowing dot using the full-hue color in --dot-color */
     .chip.status::before{
       content:"";
-      width:10px; height:10px; border-radius:50%;
-      background:var(--dot-color,var(--card-edge));
-      filter: drop-shadow(0 0 6px var(--dot-color,var(--card-edge)));
+      width:9px; height:9px; border-radius:50%;
+      background:var(--dot-color, var(--chip-color));
+      filter: drop-shadow(0 0 6px var(--dot-color, var(--chip-color)));
       animation: dotPulse 1.8s ease-in-out infinite;
     }
     @keyframes dotPulse{
-      0%,100% { transform: scale(1); opacity: 0.95; }
-      50%     { transform: scale(1.25); opacity: 0.6; }
+      0%,100% { transform: scale(1); opacity: .95; }
+      50%     { transform: scale(1.25); opacity: .6; }
     }
     @media (prefers-reduced-motion: reduce){
       .chip.status::before{ animation:none }
@@ -128,7 +127,7 @@
   const csvUrl = params.get('csv');
   const sheetId = params.get('sheet');
   const gid = params.get('gid');
-  const sheetName = params.get('sheetName'); // optional alternative to gid
+  const sheetName = params.get('sheetName');
 
   function gvizUrl() {
     if (sheetId && gid) {
@@ -155,10 +154,7 @@
         items = parseCSV(text);
       } else {
         const url = gvizUrl();
-        if (!url) {
-          showError('Missing source. Pass ?sheet=YOUR_SHEET_ID&gid=TAB_GID or ?csv=CSV_URL');
-          return;
-        }
+        if (!url) { showError('Missing source. Pass ?sheet=YOUR_SHEET_ID&gid=TAB_GID or ?csv=CSV_URL'); return; }
         const txt = await fetch(url, {cache:'no-cache'}).then(r=>r.text());
         const json = JSON.parse(txt.replace(/^[^{]+/, '').replace(/;?\s*$/, ''));
         items = gvizToItems(json);
@@ -179,9 +175,7 @@
     for (const r of rows) {
       const cells = r.c || [];
       const obj = {};
-      cols.forEach((key, i) => {
-        obj[key] = cells[i] ? (cells[i].v != null ? String(cells[i].v) : '') : '';
-      });
+      cols.forEach((key, i) => { obj[key] = cells[i] ? (cells[i].v != null ? String(cells[i].v) : '') : ''; });
       normalize(obj);
       out.push(obj);
     }
@@ -196,10 +190,8 @@
     while (i < text.length) {
       const ch = text[i++];
       if (inQuotes) {
-        if (ch === '"') {
-          if (text[i] === '"') { field += '"'; i++; }
-          else { inQuotes = false; }
-        } else field += ch;
+        if (ch === '"') { if (text[i] === '"') { field += '"'; i++; } else { inQuotes = false; } }
+        else field += ch;
       } else {
         if (ch === '"') inQuotes = true;
         else if (ch === ',') pushField();
@@ -217,8 +209,7 @@
       if (!line.some(v => v && String(v).trim() !== '')) continue;
       const obj = {};
       headers.forEach((k, idx) => obj[k] = (line[idx] || '').toString());
-      normalize(obj);
-      out.push(obj);
+      normalize(obj); out.push(obj);
     }
     return out;
   }
@@ -236,26 +227,29 @@
     obj.detail_url    = (obj.detail_url || obj.detailurl || '').trim();
     obj.description   = (obj.description || '').trim();
     obj.specs         = (obj.specs || '').trim();
-    obj.status_color  = pickStatusColor(obj.status);
+
+    obj.status_color  = pickStatusColor(obj.status);     // full-hue for dot + chip tone
     obj.hazard_color  = pickHazardColor(obj.hazard_class);
   }
 
   function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
   function splitList(val){ return (val ? String(val) : '').split(/[;,]/).map(s=>s.trim()).filter(Boolean); }
+
+  // Map to UCSD colors (full hue)
   function pickStatusColor(status){
     const s = String(status||'').toLowerCase();
-    if (s.includes('down') || s.includes('offline') || s.includes('out of service')) return cssVar('--danger');
-    if (s.includes('restricted') || s.includes('limited')) return cssVar('--warn');
-    return cssVar('--ok');
+    if (s.includes('down') || s.includes('offline') || s.includes('out of service')) return '#EF4444';           // red
+    if (s.includes('restricted') || s.includes('limited')) return getVar('--ucsd-yellow');                       // yellow
+    return getVar('--ucsd-green');                                                                               // ok/operational
   }
   function pickHazardColor(h){
     const v = String(h||'').trim();
-    if (v === '3') return cssVar('--danger');
-    if (v === '2') return cssVar('--warn');
-    if (v === '1') return cssVar('--ok');
-    return cssVar('--card-edge');
+    if (v === '3') return '#EF4444';
+    if (v === '2') return getVar('--ucsd-yellow');
+    if (v === '1') return getVar('--ucsd-green');
+    return getVar('--card-edge');
   }
-  function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function getVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
   // Filters
   function setupFilters(data){
@@ -271,11 +265,7 @@
     return [...new Set(list.map(x => (x[key]||'').toString().trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   }
   function fillSelect(select, values){
-    values.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v; opt.textContent = v;
-      select.appendChild(opt);
-    });
+    values.forEach(v => { const opt = document.createElement('option'); opt.value = v; opt.textContent = v; select.appendChild(opt); });
   }
 
   function filterAll(){
@@ -299,22 +289,21 @@
   }
 
   function esc(s){
-    return (s == null ? '' : String(s))
-      .replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
   function render(list){
     els.count.textContent = list.length + ' machine' + (list.length===1?'':'s') + ' shown';
     const html = list.map(m => {
       const chips = [
-        // STATUS chip: filled, color = status_color, with glowing dot
-        '<div class="chip status filled" style="--chip-bg:'+esc(m.status_color)+'; --dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
+        // STATUS chip: subtle tint using status color; dot stays full-hue
+        '<div class="chip status" style="--chip-color:'+esc(m.status_color)+'; --dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
 
-        // HAZARD chip: filled, color = hazard_color (if present)
-        (m.hazard_class ? '<div class="chip haz filled" style="--chip-bg:'+esc(m.hazard_color)+'">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
+        // HAZARD: subtle tint using hazard color
+        (m.hazard_class ? '<div class="chip haz" style="--chip-color:'+esc(m.hazard_color)+'">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
 
-        // ACCESS chips: filled, sandbox access blue
-        ...((m.access_chips||[]).map(c => '<div class="chip access filled" style="--chip-bg: var(--access)">'+esc(c)+'</div>'))
+        // ACCESS: subtle tint using UCSD blue
+        ...((m.access_chips||[]).map(c => '<div class="chip access" style="--chip-color:'+esc(getVar('--ucsd-blue'))+'">'+esc(c)+'</div>'))
       ].join('');
 
       const thumb = m.thumbnail_url ? '<img class="thumb" alt="" loading="lazy" src="'+esc(m.thumbnail_url)+'">' : '<div class="thumb"></div>';
@@ -323,7 +312,7 @@
       return [
         '<article class="card" aria-label="'+esc(m.name)+'">',
           thumb,
-          '<div class="bar" style="background:'+esc(m.status_color)+'"></div>',
+          '<div class="bar" style="background:'+esc(m.status_color)+'; opacity:.25"></div>',
           '<div class="pad">',
             '<h3 class="name">'+esc(m.name)+'</h3>',
             '<div class="muted">'+esc(m.category||'')+(m.category&&m.location?' · ':'')+esc(m.location||'')+'</div>',
