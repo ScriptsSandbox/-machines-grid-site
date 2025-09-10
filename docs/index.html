@@ -1,565 +1,413 @@
-import React, { useMemo, useState } from "react";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Explore Tools</title>
+  <style>
+    :root{
+      --aqua:#00C6D7;     /* brand aqua */
+      --green:#6E963B;    /* operational */
+      --yellow:#F3E500;   /* hazard/limited accent */
+      --orange:#F59E0B;   /* limited status */
+      --red:#EF4444;      /* out-of-service */
+      --slate:#0F172A;
+      --card:#FFFFFF;
+      --edge:#E2E8F0;     /* slate-200 */
+      --bg:#F1F5F9;       /* slate-100 */
+      --text:#0F172A;
+    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 56px}
+    .layout{
+      display:grid; gap:24px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1024px){
+      .layout{ grid-template-columns: 1fr 320px; align-items:start; }
+      .sidebar{ position: sticky; top: 16px }
+    }
+    .card{
+      background:#fff; border:1px solid var(--edge); border-radius:16px; box-shadow:0 8px 14px rgba(0,0,0,.05);
+    }
+    .pad{ padding:16px }
+    .filters h2{ margin:0 0 2px 0; font-size:1.25rem }
+    .muted{ color:#64748B }
+    .row{ display:flex; gap:8px; align-items:center }
+    .chips{ display:flex; flex-wrap:wrap; gap:8px }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:.75rem; font-weight:600; line-height:1;
+      padding:6px 10px; border-radius:9999px; user-select:none; cursor:default;
+      border:1px solid rgba(0,0,0,.08);
+    }
+    .chip.btn{ cursor:pointer }
+    .chip[data-selected="1"]{ outline:2px solid var(--aqua); outline-offset:1px }
+    .chip .dot{
+      width:10px; height:10px; border-radius:50%;
+      background: currentColor;
+      box-shadow:
+        0 0 0 4px rgba(0,0,0,0),         /* will be overridden inline */
+        0 0 10px 2px rgba(0,0,0,0);      /* overridden inline */
+      filter:saturate(1.2);
+    }
+    /* Cards grid */
+    .grid{ display:grid; gap:16px; grid-template-columns: 1fr; }
+    @media (min-width: 640px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1200px){ .grid{ grid-template-columns: repeat(3, 1fr); } }
+    .tool{ display:flex; flex-direction:column; gap:8px; transition: box-shadow .2s ease }
+    .tool:hover{ box-shadow:0 12px 18px rgba(0,0,0,.07) }
+    .imgwrap{ overflow:hidden; border-radius:12px; height:160px; background:#e5e7eb }
+    .imgwrap img{ width:100%; height:100%; object-fit:cover; display:block }
+    .tool h3{ font-size:1rem; margin:2px 0 0 0 }
+    .tool .meta{ font-size:.8rem; color:#64748B }
+    .kvs{ display:grid; gap:6px; margin-top:6px; font-size:.9rem }
+    .kv{ display:flex; gap:10px; align-items:flex-start }
+    .kv .k{ min-width:120px; color:#64748B; flex-shrink:0 }
+    .count{ margin:8px 0 0 0; font-size:.9rem }
+    .divider{ height:1px; background:var(--edge); margin:8px 0 }
+    .footer-note{ font-size:.85rem; color:#64748B }
+    a.cardlink{ color:inherit; text-decoration:none }
+    .legend li{ display:flex; gap:8px; align-items:center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="layout">
+      <!-- LEFT: Filters + Grid + Info -->
+      <section class="maincol">
 
-/**
- * Explore Tools — Page Mockup (No emojis, image header, chip-only filters)
- * -----------------------------------------------------------------------
- * • UCSD colors: Aqua #00C6D7, Green #6E963B, Yellow #F3E500.
- * • Card now shows a photo banner at the top (placeholder images for now).
- * • Removed emojis and hashtag tags.
- * • Filters are chip-only: categories + statuses. No search, no dropdowns.
- */
-
-const BRAND = {
-  aqua: "#00C6D7",
-  green: "#6E963B",
-  yellow: "#F3E500",
-  orange: "#F59E0B",
-  red: "#EF4444",
-  slate: "#0F172A",
-  card: "#FFFFFF",
-};
-
-const STATUS_META = {
-  operational: { label: "Operational", color: BRAND.green },
-  limited: { label: "Limited", color: BRAND.orange },
-  out: { label: "Out of Service", color: BRAND.red },
-  setup: { label: "In Setup", color: BRAND.aqua },
-};
-
-const HAZARD_META = {
-  "HC-1": { label: "Hazard Class 1", color: BRAND.yellow },
-  "HC-0": { label: "Hazard Class 0", color: "#CBD5E1" },
-};
-
-// --- Helpers ---------------------------------------------------------------
-function hexToRgb(hex) {
-  const h = hex.replace("#", "");
-  const bigint = parseInt(h, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return { r, g, b };
-}
-function withAlpha(hex, a) {
-  const { r, g, b } = hexToRgb(hex);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-// --- Sample Data (edit freely) --------------------------------------------
-const TOOLS = [
-  {
-    id: "laser60",
-    name: "Laser Cutter (CO₂ 60W)",
-    category: "Laser Cutting",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-1",
-    usage: "Drop‑in only",
-    image: "https://picsum.photos/seed/laser60/800/450",
-    specs: {
-      "Max bed size": "24 × 18 in (approx)",
-      "Max thickness": "~6 mm typical (material‑dependent)",
-      "Materials OK": "Acrylic, plywood, MDF, paper/card, cork",
-      "Not allowed": "PVC, vinyl, unknown plastics, polycarbonate",
-    },
-  },
-  {
-    id: "bambuP1S",
-    name: "Bambu Lab P1S",
-    category: "3D Printing",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-0",
-    usage: "Drop‑in (queue)",
-    image: "https://picsum.photos/seed/bambuP1S/800/450",
-    specs: {
-      "Build volume": "256 × 256 × 256 mm",
-      "Materials OK": "PLA only",
-      "Not allowed": "ABS, PETG, Nylon (Sandbox policy)",
-    },
-  },
-  {
-    id: "bambuA1",
-    name: "Bambu Lab A1",
-    category: "3D Printing",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-0",
-    usage: "Drop‑in (queue)",
-    image: "https://picsum.photos/seed/bambuA1/800/450",
-    specs: {
-      "Build volume": "220 × 220 × 250 mm",
-      "Materials OK": "PLA only",
-      "Not allowed": "ABS, PETG, Nylon (Sandbox policy)",
-    },
-  },
-  {
-    id: "prusaMini",
-    name: "Prusa Mini+",
-    category: "3D Printing",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-0",
-    usage: "Drop‑in (queue)",
-    image: "https://picsum.photos/seed/prusaMini/800/450",
-    specs: {
-      "Build volume": "180 × 180 × 180 mm",
-      "Materials OK": "PLA only",
-      "Not allowed": "ABS, PETG, Nylon (Sandbox policy)",
-    },
-  },
-  {
-    id: "tormach1100",
-    name: "Tormach PCNC1100 (CNC Mill)",
-    category: "CNC Milling",
-    location: "H‑Lab Makerspace",
-    status: "limited",
-    hazard: "HC-1",
-    usage: "Staff‑supervised",
-    image: "https://picsum.photos/seed/tormach1100/800/450",
-    specs: {
-      "Work envelope": "18 × 9.5 × 16.25 in",
-      "Materials OK": "Aluminum, plastics; light steel (case‑by‑case)",
-      "Not allowed": "Unknown alloys; bring material card",
-    },
-  },
-  {
-    id: "hardingeHLVH",
-    name: "Hardinge HLV‑H (Lathe)",
-    category: "Manual Machining",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-1",
-    usage: "Training + check‑off",
-    image: "https://picsum.photos/seed/hardinge/800/450",
-    specs: {
-      "Swing × between centers": "11 in × 18 in (approx)",
-      "Materials OK": "Aluminum, brass, plastics",
-      "Not allowed": "Magnesium, unknown alloys",
-    },
-  },
-  {
-    id: "kentMill",
-    name: "Kent Knee Mill (MillPWR)",
-    category: "Manual Machining",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-1",
-    usage: "Training + check‑off",
-    image: "https://picsum.photos/seed/kent/800/450",
-    specs: {
-      "Table": "~9 × 42 in",
-      "Materials OK": "Aluminum, plastics; light steel",
-      "Not allowed": "Magnesium, unknown alloys",
-    },
-  },
-  {
-    id: "taigMill",
-    name: "Taig Micro Mill",
-    category: "Precision/Small‑format",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-1",
-    usage: "Training + check‑off",
-    image: "https://picsum.photos/seed/taigmill/800/450",
-    specs: {
-      "Use case": "Small plastics & soft metals",
-      "Notes": "Great for fixtures, test parts",
-    },
-  },
-  {
-    id: "taigLathe",
-    name: "Taig Micro Lathe",
-    category: "Precision/Small‑format",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-1",
-    usage: "Training + check‑off",
-    image: "https://picsum.photos/seed/taiglathe/800/450",
-    specs: {
-      "Use case": "Small plastics & soft metals",
-      "Notes": "Pins, spacers, fittings",
-    },
-  },
-  {
-    id: "wazer",
-    name: "WAZER Desktop Waterjet",
-    category: "Abrasive Waterjet",
-    location: "H‑Lab Makerspace",
-    status: "setup",
-    hazard: "HC-1",
-    usage: "Staff‑run (pilot)",
-    image: "https://picsum.photos/seed/wazer/800/450",
-    specs: {
-      "Bed": "305 × 460 mm (~12 × 18 in)",
-      "Materials OK": "Metals, glass, stone, composites",
-      "Notes": "Abrasive handling required",
-    },
-  },
-  {
-    id: "vinyl",
-    name: "Vinyl Cutter",
-    category: "2D Cutting",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-0",
-    usage: "Drop‑in",
-    image: "https://picsum.photos/seed/vinyl/800/450",
-    specs: {
-      "Max width": "~24 in",
-      "Materials OK": "Standard sign vinyl, stencil film",
-      "Not allowed": "PVC for laser — use this tool instead",
-    },
-  },
-  {
-    id: "electronics",
-    name: "Electronics Benches (Soldering)",
-    category: "Electronics",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-0",
-    usage: "Drop‑in w/ guidance",
-    image: "https://picsum.photos/seed/electronics/800/450",
-    specs: {
-      "Includes": "Soldering stations, PSUs, scopes, hand tools",
-      "Notes": "Ask staff about ESD & fume safety",
-    },
-  },
-  {
-    id: "sewing",
-    name: "Sewing Machine",
-    category: "Textiles",
-    location: "H‑Lab Makerspace",
-    status: "operational",
-    hazard: "HC-0",
-    usage: "Drop‑in",
-    image: "https://picsum.photos/seed/sewing/800/450",
-    specs: {
-      "Use case": "Bags, soft mounts, prototyping",
-      "Notes": "Bring fabric; ask about needles & thread",
-    },
-  },
-];
-
-const CATEGORIES = [
-  "All",
-  ...Array.from(new Set(TOOLS.map((t) => t.category))).sort(),
-];
-const STATUS_KEYS = ["operational", "limited", "out", "setup"];
-
-// --- UI Atoms --------------------------------------------------------------
-function Chip({ label, colorHex, glow = false, className = "" }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${className}`}
-      style={{
-        backgroundColor: withAlpha(colorHex, 0.12),
-        color: colorHex,
-        border: `1px solid ${withAlpha(colorHex, 0.25)}`,
-      }}
-    >
-      {glow && <GlowDot colorHex={colorHex} />}
-      {label}
-    </span>
-  );
-}
-
-function GlowDot({ colorHex }) {
-  const ring = withAlpha(colorHex, 0.35);
-  return (
-    <span
-      className="inline-block h-2.5 w-2.5 rounded-full"
-      style={{
-        backgroundColor: colorHex,
-        boxShadow: `0 0 0 4px ${ring}, 0 0 10px 2px ${ring}`,
-        filter: "saturate(1.2)",
-      }}
-    />
-  );
-}
-
-// --- Card -----------------------------------------------------------------
-function ToolCard({ tool }) {
-  const status = STATUS_META[tool.status];
-  const hazard = HAZARD_META[tool.hazard] || null;
-
-  return (
-    <div className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
-      {/* Image header */}
-      {tool.image && (
-        <div className="mb-3 overflow-hidden rounded-xl">
-          <img
-            src={tool.image}
-            alt={`${tool.name} in use`}
-            className="h-40 w-full object-cover"
-            loading="lazy"
-          />
-        </div>
-      )}
-
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-xs text-slate-500">{tool.category}</div>
-          <h3 className="mt-1 line-clamp-1 text-base font-semibold text-slate-900">{tool.name}</h3>
-          <p className="text-xs text-slate-500">{tool.location}</p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <Chip label={status.label} colorHex={status.color} glow />
-          {hazard && <Chip label={hazard.label} colorHex={hazard.color} />}
-        </div>
-      </div>
-
-      <div className="mt-2 grid gap-1 text-sm text-slate-700">
-        {Object.entries(tool.specs || {}).slice(0, 3).map(([k, v]) => (
-          <div key={k} className="flex items-start gap-2">
-            <span className="min-w-28 shrink-0 text-slate-500">{k}:</span>
-            <span className="flex-1">{v}</span>
+        <!-- Filters -->
+        <div class="card pad filters">
+          <div class="row" style="justify-content:space-between; align-items:flex-start">
+            <div>
+              <h2>Explore Tools</h2>
+              <div id="count" class="count muted">Loading…</div>
+            </div>
+            <div>
+              <button id="clearBtn" class="chip btn" style="background:#fff">Clear</button>
+            </div>
           </div>
-        ))}
-      </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {tool.usage && (
-          <Chip label={tool.usage} colorHex={BRAND.aqua} className="capitalize" />
-        )}
-      </div>
+          <div style="margin-top:10px; font-size:.8rem; color:#475569">Categories</div>
+          <div id="catChips" class="chips" style="margin-top:6px"></div>
 
-      {/* Hover affordance */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 scale-x-0 bg-[var(--aqua)] opacity-0 transition group-hover:scale-x-100 group-hover:opacity-100" />
-      <style>{`:root{--aqua:${BRAND.aqua};}`}</style>
-    </div>
-  );
-}
-
-// --- Sidebar ---------------------------------------------------------------
-function Sidebar() {
-  return (
-    <aside className="sticky top-4 hidden h-fit space-y-4 lg:block">
-      {/* Legend */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h4 className="text-sm font-semibold text-slate-900">Legend</h4>
-        <div className="mt-3 space-y-2 text-sm">
-          <div className="flex items-center gap-2">
-            <Chip label="Operational" colorHex={BRAND.green} glow />
-            <span className="text-slate-600">Available for general use</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Chip label="Limited" colorHex={BRAND.orange} />
-            <span className="text-slate-600">Staff‑assisted / capacity‑limited</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Chip label="Out of Service" colorHex={BRAND.red} />
-            <span className="text-slate-600">Temporarily unavailable</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Chip label="Hazard Class 1" colorHex={BRAND.yellow} />
-            <span className="text-slate-600">Extra safety considerations</span>
-          </div>
+          <div style="margin-top:10px; font-size:.8rem; color:#475569">Status</div>
+          <div id="statChips" class="chips" style="margin-top:6px"></div>
         </div>
-      </div>
 
-      {/* Quick Links */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h4 className="text-sm font-semibold text-slate-900">Quick Links</h4>
-        <ul className="mt-3 space-y-2 text-sm">
-          <li>
-            <a className="text-[color:var(--aqua)] hover:underline" href="#">
-              Training & Policies
-            </a>
-          </li>
-          <li>
-            <a className="text-[color:var(--aqua)] hover:underline" href="#">
-              Materials Guide (what’s OK / not OK)
-            </a>
-          </li>
-          <li>
-            <a className="text-[color:var(--aqua)] hover:underline" href="#">
-              File Prep Quick‑Guides (Laser, 3D Print)
-            </a>
-          </li>
-          <li>
-            <a className="text-[color:var(--aqua)] hover:underline" href="#">
-              Hours & Access
-            </a>
-          </li>
-        </ul>
-      </div>
+        <!-- Grid -->
+        <div id="grid" class="grid" aria-live="polite"></div>
 
-      {/* Materials & Safety */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h4 className="text-sm font-semibold text-slate-900">Materials & Safety</h4>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-          <li>Laser: <b>NO PVC/vinyl/polycarbonate</b>. Ask if unsure.</li>
-          <li>3D Printing: <b>PLA only</b> at Sandbox.</li>
-          <li>Machining: Deburr & clean machines after use.</li>
-          <li>Report issues to staff; we’ll tag and service tools.</li>
-          <li>No solo operation of power tools.</li>
-        </ul>
-      </div>
-    </aside>
-  );
-}
-
-// --- Filters (chip-only) ---------------------------------------------------
-function Filters({ category, setCategory, statusSet, toggleStatus, clearAll, totalShowing, totalAll }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex-1">
-          <h2 className="text-xl font-semibold text-slate-900">Explore Tools</h2>
-          <p className="mt-0.5 text-sm text-slate-600">Showing <b>{totalShowing}</b> of {totalAll}</p>
+        <!-- Info blocks -->
+        <div class="card pad" style="margin-top:16px">
+          <h3 style="margin:0 0 6px 0; font-size:1rem">Materials: quick notes</h3>
+          <ul style="margin:6px 0 0 16px; padding:0; color:#334155; font-size:.95rem">
+            <li><b>Laser:</b> Acrylic, plywood, paper/card are OK. <b>No PVC, vinyl, polycarbonate.</b></li>
+            <li><b>3D Print:</b> Sandbox policy is <b>PLA only</b>.</li>
+            <li><b>Machining:</b> Aluminum & plastics common; check in on steels. Bring material info.</li>
+          </ul>
         </div>
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
-          <button onClick={clearAll} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Clear</button>
+
+        <div class="card pad" style="margin-top:16px">
+          <h3 style="margin:0 0 6px 0; font-size:1rem">Prep your files</h3>
+          <ul style="margin:6px 0 0 16px; padding:0; color:#334155; font-size:.95rem">
+            <li><b>Laser:</b> Vector (SVG, DXF) for cuts; high-contrast raster for engraves.</li>
+            <li><b>3D Print:</b> Export <b>STL/3MF</b>; check manifold/watertight; layer height 0.2 mm typical.</li>
+            <li><b>CNC:</b> Provide STEP + drawing; staff review setups & tooling.</li>
+          </ul>
         </div>
-      </div>
 
-      {/* Category chips */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {CATEGORIES.map((c) => (
-          <button key={c} onClick={() => setCategory(c)}>
-            <Chip
-              label={c}
-              colorHex={BRAND.aqua}
-              className={category === c ? "ring-2 ring-offset-1" : ""}
-            />
-          </button>
-        ))}
-      </div>
+      </section>
 
-      {/* Status chips */}
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        {STATUS_KEYS.map((k) => (
-          <button key={k} onClick={() => toggleStatus(k)}>
-            <Chip
-              label={STATUS_META[k].label}
-              colorHex={STATUS_META[k].color}
-              glow={k === "operational"}
-              className={statusSet.has(k) ? "ring-2 ring-offset-1" : ""}
-            />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
+      <!-- RIGHT: Sidebar -->
+      <aside class="sidebar">
+        <div class="card pad">
+          <h4 style="margin:0; font-size:.95rem">Legend</h4>
+          <ul class="legend" style="list-style:none; padding:0; margin:12px 0 0 0; color:#334155; font-size:.95rem">
+            <li><span class="chip" style="color:var(--green); background:rgba(110,150,59,.12); border-color:rgba(110,150,59,.25)">
+              <span class="dot" style="color:var(--green); box-shadow:0 0 0 4px rgba(110,150,59,.35), 0 0 10px 2px rgba(110,150,59,.35)"></span>
+              Operational</span> <span>Available for general use</span></li>
+            <li><span class="chip" style="color:var(--orange); background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.25)">Limited</span> <span>Staff-assisted / capacity-limited</span></li>
+            <li><span class="chip" style="color:var(--red); background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.25)">Out of Service</span> <span>Temporarily unavailable</span></li>
+            <li><span class="chip" style="color:var(--yellow); background:rgba(243,229,0,.12); border-color:rgba(243,229,0,.25)">Hazard Class 1</span> <span>Extra safety considerations</span></li>
+          </ul>
+        </div>
 
-// --- Main Page -------------------------------------------------------------
-export default function ExploreToolsPage() {
-  const [category, setCategory] = useState("All");
-  const [statusSet, setStatusSet] = useState(new Set());
+        <div class="card pad" style="margin-top:16px">
+          <h4 style="margin:0; font-size:.95rem">Materials & Safety</h4>
+          <ul style="margin:10px 0 0 16px; padding:0; color:#334155; font-size:.95rem">
+            <li>Laser: <b>NO PVC/vinyl/polycarbonate</b>. Ask if unsure.</li>
+            <li>3D Printing: <b>PLA only</b> at Sandbox.</li>
+            <li>Machining: Deburr & clean after use.</li>
+            <li>Report issues to staff; we’ll tag and service tools.</li>
+            <li>No solo operation of power tools.</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
 
-  const filtered = useMemo(() => {
-    return TOOLS.filter((t) => {
-      if (category !== "All" && t.category !== category) return false;
-      if (statusSet.size && !statusSet.has(t.status)) return false;
+    <footer class="footer-note" style="margin-top:20px">
+      © <span id="year"></span> SIO • Sandbox Makerspace • Built for clarity and quick access
+    </footer>
+  </div>
+
+<script>
+(function(){
+  // --- Brand + meta
+  const BRAND = {
+    aqua: "#00C6D7", green:"#6E963B", yellow:"#F3E500", orange:"#F59E0B", red:"#EF4444"
+  };
+  const STATUS_META = {
+    operational: { label: "Operational", color: BRAND.green },
+    limited:     { label: "Limited",     color: BRAND.orange },
+    out:         { label: "Out of Service", color: BRAND.red },
+    setup:       { label: "In Setup",    color: BRAND.aqua }
+  };
+  const HAZARD_META = {
+    "HC-0": { label: "Hazard Class 0", color: "rgba(148,163,184,.8)" }, // slate-400ish
+    "HC-1": { label: "Hazard Class 1", color: BRAND.yellow },
+    "HC-2": { label: "Hazard Class 2", color: BRAND.orange },
+    "HC-3": { label: "Hazard Class 3", color: BRAND.red }
+  };
+
+  // --- DOM
+  const els = {
+    count: document.getElementById('count'),
+    grid: document.getElementById('grid'),
+    catChips: document.getElementById('catChips'),
+    statChips: document.getElementById('statChips'),
+    clearBtn: document.getElementById('clearBtn')
+  };
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // --- Utils
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function hexToRgb(hex){
+    const h = hex.replace('#',''); const n = parseInt(h,16);
+    return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+  }
+  function withAlpha(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+  function uniq(arr){ return [...new Set(arr)]; }
+  function sortStr(a,b){ return String(a).localeCompare(String(b)); }
+
+  // --- Status/Hazard normalization
+  function normStatus(s){
+    const v = String(s||'').trim().toLowerCase();
+    if (/(down|offline|out\s*of\s*service)/.test(v)) return 'out';
+    if (/(restricted|limited)/.test(v)) return 'limited';
+    if (/(setup|in setup|commission)/.test(v)) return 'setup';
+    return 'operational';
+  }
+  function normHazard(h){
+    const v = String(h||'').trim();
+    if (!v) return 'HC-0';
+    const key = (v.toUpperCase().startsWith('HC-')? v.toUpperCase() : 'HC-' + v);
+    return HAZARD_META[key] ? key : 'HC-0';
+  }
+
+  // --- Spec parsing (first 3 key:value lines shown)
+  function parseSpecsCell(specs){
+    const out = [];
+    const lines = String(specs||'').replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
+    for (const line of lines){
+      const m = line.match(/^([^:]+):\s*(.*)$/);
+      if (m) out.push([m[1].trim(), m[2].trim()]);
+      else out.push(['Notes', line]);
+    }
+    return out;
+  }
+
+  // --- CSV / GVIZ loaders
+  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
+  function parseCSV(text){
+    const rows=[]; let i=0, field='', row=[], inQ=false;
+    function pushF(){ row.push(field); field=''; }
+    function pushR(){ rows.push(row); row=[]; }
+    while(i<text.length){
+      const ch=text[i++]; if(inQ){ if(ch=='"'){ if(text[i]=='"'){field+='"'; i++;} else inQ=false; } else field+=ch; }
+      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\r'){} else if(ch=='\n'){ pushF(); pushR(); } else field+=ch; }
+    }
+    pushF(); if(row.length) pushR();
+    if(rows.length<2) return [];
+    const headers = rows[0].map(normalizeKey);
+    const out=[];
+    for(let r=1;r<rows.length;r++){
+      const line=rows[r]; if(!line.some(v=>v && String(v).trim()!=='')) continue;
+      const obj={}; headers.forEach((k,idx)=> obj[k]=(line[idx]||'').toString());
+      out.push(obj);
+    }
+    return out;
+  }
+  function parseGviz(txt){
+    const json = JSON.parse(txt.replace(/^[^{]+/,'').replace(/;?\s*$/,''));
+    const cols = (json.table.cols||[]).map(c=>normalizeKey(c.label));
+    const rows = json.table.rows || [];
+    const out=[];
+    for(const r of rows){
+      const cells = r.c || []; const obj={};
+      cols.forEach((key,i)=> obj[key] = cells[i] ? (cells[i].v != null ? String(cells[i].v) : '') : '');
+      out.push(obj);
+    }
+    return out;
+  }
+  async function fetchText(url){
+    const u = new URL(url, location.href); u.searchParams.set('cb', Date.now());
+    const res = await fetch(u.toString(), {cache:'no-cache'}); if(!res.ok) throw new Error(res.status);
+    return res.text();
+  }
+
+  function mapRow(obj){
+    const name = obj.name || obj['Name'] || '';
+    const category = obj.category || obj['Category'] || '';
+    const location = obj.location || obj['Location'] || '';
+    const status = normStatus(obj.status || obj['Status'] || 'operational');
+    const hazard = normHazard(obj.hazard_class || obj['Hazard Class'] || '0');
+    const usage = obj.access || obj['Access'] || '';
+    const image = obj.thumbnail_url || obj['Thumbnail URL'] || '';
+    const detail = obj.detail_url || obj['Detail URL'] || '';
+    const specs = parseSpecsCell(obj.specs || obj['Specs'] || '');
+    return { name, category, location, status, hazard, usage, image, detail, specs };
+  }
+
+  // --- State
+  let ALL_TOOLS = [];
+  let categorySel = 'All';
+  const statusSel = new Set(); // 'operational' | 'limited' | 'out' | 'setup'
+
+  // --- Rendering
+  function chipHTML({label, color, glow, selected, button}){
+    const bg = withAlpha(color, 0.12), bd = withAlpha(color, 0.25);
+    const selAttr = selected ? ' data-selected="1"' : '';
+    const cls = 'chip' + (button? ' btn':'');
+    const dot = glow ? `<span class="dot" style="color:${esc(color)}; box-shadow:0 0 0 4px ${withAlpha(color,.35)}, 0 0 10px 2px ${withAlpha(color,.35)}"></span>` : '';
+    return `<span class="${cls}"${selAttr} style="color:${esc(color)}; background:${bg}; border-color:${bd}">${dot}${esc(label)}</span>`;
+  }
+
+  function renderFilters(){
+    // Categories
+    const cats = uniq(ALL_TOOLS.map(t=>t.category).filter(Boolean)).sort(sortStr);
+    const catEls = ['All', ...cats].map(c => {
+      const html = chipHTML({label:c, color:BRAND.aqua, glow:false, selected:(categorySel===c), button:true});
+      return `<button type="button" class="cat" data-cat="${esc(c)}" style="all:unset">${html}</button>`;
+    }).join('');
+    els.catChips.innerHTML = catEls;
+
+    // Status chips
+    const statuses = ['operational','limited','out','setup'];
+    const statEls = statuses.map(k => {
+      const meta = STATUS_META[k];
+      const html = chipHTML({label:meta.label, color:meta.color, glow:(k==='operational'), selected:statusSel.has(k), button:true});
+      return `<button type="button" class="stat" data-stat="${k}" style="all:unset">${html}</button>`;
+    }).join('');
+    els.statChips.innerHTML = statEls;
+
+    // Handlers
+    els.catChips.querySelectorAll('button.cat').forEach(btn => {
+      btn.onclick = () => { categorySel = btn.getAttribute('data-cat'); renderAll(); };
+    });
+    els.statChips.querySelectorAll('button.stat').forEach(btn => {
+      btn.onclick = () => {
+        const k = btn.getAttribute('data-stat');
+        if (statusSel.has(k)) statusSel.delete(k); else statusSel.add(k);
+        renderAll();
+      };
+    });
+    els.clearBtn.onclick = () => { categorySel='All'; statusSel.clear(); renderAll(); };
+  }
+
+  function renderGrid(list){
+    els.count.textContent = `Showing ${list.length} of ${ALL_TOOLS.length}`;
+    if (!list.length){
+      els.grid.innerHTML = `<div class="card pad muted" style="text-align:center">No tools match your filters.</div>`;
+      return;
+    }
+    const cards = list.map(t => {
+      const stat = STATUS_META[t.status] || STATUS_META.operational;
+      const haz = HAZARD_META[t.hazard];
+
+      const img = t.image ? `<div class="imgwrap"><img src="${esc(t.image)}" alt="${esc(t.name)} photo" loading="lazy"></div>` : `<div class="imgwrap"></div>`;
+
+      const statusChip = chipHTML({label:stat.label, color:stat.color, glow:true});
+      const hazardChip = haz ? chipHTML({label:haz.label, color:haz.color, glow:false}) : '';
+      const usageChip = t.usage ? chipHTML({label:t.usage, color:BRAND.aqua, glow:false}) : '';
+
+      // Show up to 3 specs
+      const specRows = (t.specs||[]).slice(0,3).map(([k,v]) =>
+        `<div class="kv"><span class="k">${esc(k)}:</span><span class="v">${esc(v)}</span></div>`
+      ).join('');
+
+      const inner = `
+        <article class="tool card pad" aria-label="${esc(t.name)}">
+          ${img}
+          <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px">
+            <div style="min-width:0">
+              <div class="meta">${esc(t.category||'')}</div>
+              <h3 class="line-clamp-1">${esc(t.name)}</h3>
+              <div class="meta">${esc(t.location||'')}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end">
+              ${statusChip}
+              ${hazardChip}
+            </div>
+          </div>
+          ${specRows ? `<div class="kvs">${specRows}</div>` : ''}
+          <div class="chips" style="margin-top:8px">${usageChip}</div>
+        </article>`;
+
+      // If Detail URL exists, make the whole card clickable
+      if (t.detail){
+        return `<a class="cardlink" href="${esc(t.detail)}" target="_blank" rel="noopener">${inner}</a>`;
+      }
+      return inner;
+    }).join('');
+
+    els.grid.innerHTML = cards;
+  }
+
+  function renderAll(){
+    const list = ALL_TOOLS.filter(t => {
+      if (categorySel !== 'All' && t.category !== categorySel) return false;
+      if (statusSel.size && !statusSel.has(t.status)) return false;
       return true;
     });
-  }, [category, statusSet]);
-
-  function toggleStatus(k) {
-    const next = new Set(statusSet);
-    if (next.has(k)) next.delete(k);
-    else next.add(k);
-    setStatusSet(next);
-  }
-  function clearAll() {
-    setCategory("All");
-    setStatusSet(new Set());
+    renderFilters();
+    renderGrid(list);
   }
 
-  return (
-    <div className="min-h-screen bg-slate-100">
-      {/* Page header / mast */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-slate-900">Explore Tools</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-600">
-                Find the right tool quickly. Filter by category and status. No search, no dropdowns — just clear chips.
-              </p>
-            </div>
-            <a
-              href="#materials"
-              className="hidden rounded-xl border border-slate-200 px-3 py-2 text-sm text-[color:var(--aqua)] hover:bg-slate-50 md:block"
-            >
-              Materials & Safety
-            </a>
-          </div>
-          <style>{`:root{--aqua:${BRAND.aqua};}`}</style>
-        </div>
-      </header>
+  // --- Load data from ?csv= or ?sheet=&gid=
+  (async function load(){
+    try{
+      const params = new URLSearchParams(location.search);
+      const csv = params.get('csv');
+      const sheet = params.get('sheet');
+      const gid = params.get('gid');
+      const sheetName = params.get('sheetName');
 
-      {/* Content */}
-      <main className="mx-auto max-w-7xl px-4 py-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-          <section className="space-y-4">
-            <Filters
-              category={category}
-              setCategory={setCategory}
-              statusSet={statusSet}
-              toggleStatus={toggleStatus}
-              clearAll={clearAll}
-              totalShowing={filtered.length}
-              totalAll={TOOLS.length}
-            />
+      let rows = [];
+      if (csv){
+        rows = parseCSV(await fetchText(csv));
+      } else if (sheet && (gid || sheetName)){
+        let url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheet)}/gviz/tq?tqx=out:json`;
+        if (gid) url += `&gid=${encodeURIComponent(gid)}`;
+        if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
+        rows = parseGviz(await fetchText(url));
+      } else {
+        els.grid.innerHTML = `<div class="card pad muted" style="text-align:center">Pass <code>?sheet=…&gid=…</code> or <code>?csv=…</code> in the URL.</div>`;
+        els.count.textContent = `Showing 0 of 0`;
+        return;
+      }
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filtered.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} />
-              ))}
-            </div>
-
-            {/* Info blocks */}
-            <section id="materials" className="mt-2 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <h3 className="text-base font-semibold text-slate-900">Materials: quick notes</h3>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                  <li><b>Laser:</b> Acrylic, plywood, paper/card are OK. <b>No PVC, vinyl, polycarbonate.</b></li>
-                  <li><b>3D Print:</b> Sandbox policy is <b>PLA only</b>.</li>
-                  <li><b>Machining:</b> Aluminum & plastics common; check in on steels. Bring material info.</li>
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <h3 className="text-base font-semibold text-slate-900">Prep your files</h3>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                  <li><b>Laser:</b> Vector (SVG, DXF) for cuts; high‑contrast raster for engraves.</li>
-                  <li><b>3D Print:</b> Export <b>STL/3MF</b>; check manifold/watertight; layer height 0.2 mm typical.</li>
-                  <li><b>CNC:</b> Provide STEP + drawing; we’ll review setups & tooling.</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* FAQ / Notes */}
-            <section className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <h3 className="text-base font-semibold text-slate-900">Using the space</h3>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-                  <li>Laser & 3D printing are <b>drop‑in</b> (first‑come queue).</li>
-                  <li>No solo operation of power tools. Ask staff for check‑offs.</li>
-                  <li>Clean as you go; leave tools better than you found them.</li>
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <h3 className="text-base font-semibold text-slate-900">Something broken?</h3>
-                <p className="mt-2 text-sm text-slate-700">
-                  Tell staff right away. We’ll tag the tool, update its status on this page, and schedule service. Thanks for helping keep the shop safe.
-                </p>
-              </div>
-            </section>
-          </section>
-
-          <Sidebar />
-        </div>
-      </main>
-
-      <footer className="mt-8 border-t border-slate-200 bg-white/60">
-        <div className="mx-auto max-w-7xl px-4 py-6 text-sm text-slate-500">
-          © {new Date().getFullYear()} SIO • Sandbox Makerspace • Built for clarity and quick access
-        </div>
-      </footer>
-    </div>
-  );
-}
+      ALL_TOOLS = rows.map(mapRow);
+      renderAll();
+    }catch(err){
+      console.error(err);
+      els.grid.innerHTML = `<div class="card pad" style="color:#B91C1C; border-left:4px solid var(--red)">Failed to load data. Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div>`;
+      els.count.textContent = `Showing 0 of 0`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>
