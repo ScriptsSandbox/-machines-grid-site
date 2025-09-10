@@ -42,8 +42,13 @@
     .name{font-weight:700; font-size:1.05rem; margin:0 0 6px 0}
     .muted{color:#475569; font-size:.9rem}
     .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
-    .chip{font-size:.75rem; padding:4px 8px; border-radius:999px; border:1px solid #0000}
+    .chip{font-size:.75rem; padding:4px 8px; border-radius:999px; border:1px solid #0000; display:inline-flex; align-items:center; gap:6px}
     .chip.status{color:#0b0b0b; background:#eefbf1; border-color:#00000010}
+    .chip.status::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--dot-color,var(--card-edge)); box-shadow:0 0 4px var(--dot-color,var(--card-edge)); animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 var(--dot-color)}70%{box-shadow:0 0 0 6px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+    @media (prefers-reduced-motion: reduce){
+      .chip.status::before{animation:none}
+    }
     .chip.haz{color:#0b0b0b; background:#fff; border-color:#00000020}
     .chip.access{color:#0b0b0b; background:#ecfeff; border:1px solid #00000010}
     .row{display:flex; gap:8px; align-items:center; margin-top:6px}
@@ -240,6 +245,15 @@ Usage (pick one):
   }
   function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
+  function tint(color, alpha){
+    const hex = String(color||'').replace('#','');
+    if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+      const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+      return 'rgba('+r+','+g+','+b+','+alpha+')';
+    }
+    return color;
+  }
+
   // Filters
   function setupFilters(data){
     fillSelect(els.fCategory, uniqueSorted(data,'category'));
@@ -287,21 +301,11 @@ Usage (pick one):
       .replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   
-  
-  function tint(color, alpha){
-    const hex = String(color||'').replace('#','');
-    if (/^[0-9a-fA-F]{6}$/.test(hex)) {
-      const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
-      return 'rgba('+r+','+g+','+b+','+alpha+')';
-    }
-    return color;
-  }
-
   function render(list){
     els.count.textContent = list.length + ' machine' + (list.length===1?'':'s') + ' shown';
     const html = list.map(m => {
       const chips = [
-        '<span class="chip status" style="background:'+tint(m.status_color,0.12)+';border-color:'+tint(m.status_color,0.2)+'">Status: '+esc(m.status||'—')+'</span>',
+        '<span class="chip status" style="--dot-color:'+esc(m.status_color)+';background:'+tint(m.status_color,0.12)+';border-color:'+tint(m.status_color,0.2)+'">'+esc(m.status||'—')+'</span>',
         (m.hazard_class ? '<span class="chip haz" style="background:'+tint(m.hazard_color,0.10)+';border-color:'+tint(m.hazard_color,0.2)+'">Hazard '+esc(m.hazard_class)+'</span>' : ''),
         ...((m.access_chips||[]).map(c => '<span class="chip access" style="background:'+tint(cssVar('--access'),0.10)+';border-color:'+tint(cssVar('--access'),0.2)+'">'+esc(c)+'</span>'))
       ].join('');
