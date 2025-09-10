@@ -43,7 +43,23 @@
     .muted{color:#475569; font-size:.9rem}
     .chips{display:flex; flex-direction:column; gap:2px; margin-top:8px}
     .chip{font-size:.9rem; display:flex; align-items:center; gap:8px}
-    .chip::before{content:""; width:10px; height:10px; border-radius:50%; background:var(--dot-color,var(--card-edge))}
+
+    /* Only the STATUS chip gets a colored circular marker + glow */
+    .chip.status::before{
+      content:"";
+      width:10px; height:10px; border-radius:50%;
+      background:var(--dot-color,var(--card-edge));
+      filter: drop-shadow(0 0 6px var(--dot-color,var(--card-edge)));
+      animation: dotPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes dotPulse{
+      0%,100% { transform: scale(1); opacity: 0.95; }
+      50%     { transform: scale(1.25); opacity: 0.6; }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .chip.status::before{ animation: none }
+    }
+
     .row{display:flex; gap:8px; align-items:center; margin-top:6px}
     .row strong{font-weight:600}
     .actions{margin-top:auto; display:flex; gap:8px; padding:12px; border-top:1px solid var(--card-edge)}
@@ -84,10 +100,10 @@
 /*
 Usage (pick one):
 - Published Sheet (recommended):
-  https://<your-site>/index.html?sheet=YOUR_SHEET_ID&gid=TAB_GID
+  https://<your-site>/availability.html?sheet=YOUR_SHEET_ID&gid=TAB_GID
   (Publish that tab to the web → "Web page".)
 - Published CSV:
-  https://<your-site>/index.html?csv=FULL_CSV_URL
+  https://<your-site>/availability.html?csv=FULL_CSV_URL
 */
 
 (function(){
@@ -279,37 +295,43 @@ Usage (pick one):
     render(list);
   }
 
-
   function esc(s){
     return (s == null ? '' : String(s))
       .replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  
+
   function render(list){
     els.count.textContent = list.length + ' machine' + (list.length===1?'':'s') + ' shown';
     const html = list.map(m => {
       const chips = [
+        // STATUS chip: colored + glowing dot
         '<div class="chip status" style="--dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
-        (m.hazard_class ? '<div class="chip haz" style="--dot-color:'+esc(m.hazard_color)+'">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
-        ...((m.access_chips||[]).map(c => '<div class="chip access" style="--dot-color:'+cssVar('--access')+'">'+esc(c)+'</div>'))
+
+        // Hazard chip: plain
+        (m.hazard_class ? '<div class="chip haz">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
+
+        // Access chips: plain
+        ...((m.access_chips||[]).map(c => '<div class="chip access">'+esc(c)+'</div>'))
       ].join('');
+
       const thumb = m.thumbnail_url ? '<img class="thumb" alt="" loading="lazy" src="'+esc(m.thumbnail_url)+'">' : '<div class="thumb"></div>';
       const link  = m.detail_url ? '<a class="btn" href="'+esc(m.detail_url)+'" target="_blank" rel="noopener">Details</a>' : '';
+
       return [
         '<article class="card" aria-label="'+esc(m.name)+'">',
-        thumb,
-        '<div class="bar" style="background:'+esc(m.status_color)+'"></div>',
-        '<div class="pad">',
-          '<h3 class="name">'+esc(m.name)+'</h3>',
-          '<div class="muted">'+esc(m.category||'')+(m.category&&m.location?' · ':'')+esc(m.location||'')+'</div>',
-          '<div class="chips">'+chips+'</div>',
-          (m.description ? '<div class="row"><span class="muted">'+esc(m.description)+'</span></div>' : ''),
-          (m.specs ? '<div class="row"><strong>Specs:</strong><span class="muted" style="white-space:pre-wrap">'+esc(m.specs)+'</span></div>' : ''),
-        '</div>',
-        '<div class="actions">',
-          link,
-          '<a class="btn primary" href="javascript:void(0)" onclick="alert(\'Contact staff to use this tool.\');">Get Access</a>',
-        '</div>',
+          thumb,
+          '<div class="bar" style="background:'+esc(m.status_color)+'"></div>',
+          '<div class="pad">',
+            '<h3 class="name">'+esc(m.name)+'</h3>',
+            '<div class="muted">'+esc(m.category||'')+(m.category&&m.location?' · ':'')+esc(m.location||'')+'</div>',
+            '<div class="chips">'+chips+'</div>',
+            (m.description ? '<div class="row"><span class="muted">'+esc(m.description)+'</span></div>' : ''),
+            (m.specs ? '<div class="row"><strong>Specs:</strong><span class="muted" style="white-space:pre-wrap">'+esc(m.specs)+'</span></div>' : ''),
+          '</div>',
+          '<div class="actions">',
+            link,
+            '<a class="btn primary" href="javascript:void(0)" onclick="alert(\'Contact staff to use this tool.\');">Get Access</a>',
+          '</div>',
         '</article>'
       ].join('');
     }).join('');
