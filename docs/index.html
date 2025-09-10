@@ -41,10 +41,24 @@
     .pad{padding:14px}
     .name{font-weight:700; font-size:1.05rem; margin:0 0 6px 0}
     .muted{color:#475569; font-size:.9rem}
-    .chips{display:flex; flex-direction:column; gap:2px; margin-top:8px}
-    .chip{font-size:.9rem; display:flex; align-items:center; gap:8px}
+    .chips{display:flex; flex-direction:column; gap:4px; margin-top:8px}
 
-    /* Only the STATUS chip gets a colored circular marker + glow */
+    /* Base chip */
+    .chip{
+      font-size:.9rem; display:flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:9999px;
+      border:1px solid var(--card-edge); background:#fff; color:#111827;
+      line-height:1;
+      width:max-content;
+    }
+    /* Filled variant; we set --chip-bg inline per chip */
+    .chip.filled{
+      border-color: transparent;
+      background: var(--chip-bg, #e5e7eb);
+      color: #fff; /* ensure contrast on strong hues */
+    }
+
+    /* Only STATUS chip gets the glowing dot */
     .chip.status::before{
       content:"";
       width:10px; height:10px; border-radius:50%;
@@ -57,7 +71,7 @@
       50%     { transform: scale(1.25); opacity: 0.6; }
     }
     @media (prefers-reduced-motion: reduce){
-      .chip.status::before{ animation: none }
+      .chip.status::before{ animation:none }
     }
 
     .row{display:flex; gap:8px; align-items:center; margin-top:6px}
@@ -97,15 +111,6 @@
   </div>
 
 <script>
-/*
-Usage (pick one):
-- Published Sheet (recommended):
-  https://<your-site>/availability.html?sheet=YOUR_SHEET_ID&gid=TAB_GID
-  (Publish that tab to the web → "Web page".)
-- Published CSV:
-  https://<your-site>/availability.html?csv=FULL_CSV_URL
-*/
-
 (function(){
   const els = {
     q: document.getElementById('q'),
@@ -155,7 +160,6 @@ Usage (pick one):
           return;
         }
         const txt = await fetch(url, {cache:'no-cache'}).then(r=>r.text());
-        // gviz returns: /*O_o*/ google.visualization.Query.setResponse({...});
         const json = JSON.parse(txt.replace(/^[^{]+/, '').replace(/;?\s*$/, ''));
         items = gvizToItems(json);
       }
@@ -185,7 +189,6 @@ Usage (pick one):
   }
 
   function parseCSV(text){
-    // Tiny CSV parser for simple sheets (commas, quotes)
     const rows = [];
     let i = 0, field = '', row = [], inQuotes = false;
     function pushField(){ row.push(field); field=''; }
@@ -304,14 +307,14 @@ Usage (pick one):
     els.count.textContent = list.length + ' machine' + (list.length===1?'':'s') + ' shown';
     const html = list.map(m => {
       const chips = [
-        // STATUS chip: colored + glowing dot
-        '<div class="chip status" style="--dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
+        // STATUS chip: filled, color = status_color, with glowing dot
+        '<div class="chip status filled" style="--chip-bg:'+esc(m.status_color)+'; --dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
 
-        // Hazard chip: plain
-        (m.hazard_class ? '<div class="chip haz">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
+        // HAZARD chip: filled, color = hazard_color (if present)
+        (m.hazard_class ? '<div class="chip haz filled" style="--chip-bg:'+esc(m.hazard_color)+'">Hazard Class '+esc(m.hazard_class)+'</div>' : ''),
 
-        // Access chips: plain
-        ...((m.access_chips||[]).map(c => '<div class="chip access">'+esc(c)+'</div>'))
+        // ACCESS chips: filled, sandbox access blue
+        ...((m.access_chips||[]).map(c => '<div class="chip access filled" style="--chip-bg: var(--access)">'+esc(c)+'</div>'))
       ].join('');
 
       const thumb = m.thumbnail_url ? '<img class="thumb" alt="" loading="lazy" src="'+esc(m.thumbnail_url)+'">' : '<div class="thumb"></div>';
