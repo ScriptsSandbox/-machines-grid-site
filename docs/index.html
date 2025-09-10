@@ -4,6 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Explore Tools</title>
+
+  <!-- Inter font (safe for GH Pages + WP embeds) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
   <style>
     :root{
       --aqua:#00C6D7;     /* brand aqua */
@@ -11,143 +17,99 @@
       --yellow:#F3E500;   /* hazard/limited accent */
       --orange:#F59E0B;   /* limited status */
       --red:#EF4444;      /* out-of-service */
-      --slate:#0F172A;
-      --card:#FFFFFF;
-      --edge:#E2E8F0;     /* slate-200 */
-      --bg:#F1F5F9;       /* slate-100 */
       --text:#0F172A;
+      --edge:#E2E8F0;     /* slate-200-ish */
     }
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    html,body{
+      margin:0; padding:0; background:#747678; color:var(--text);
+      font:16px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
     .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 56px}
-    .layout{
-      display:grid; gap:24px;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width: 1024px){
-      .layout{ grid-template-columns: 1fr 320px; align-items:start; }
-      .sidebar{ position: sticky; top: 16px }
-    }
-    .card{
-      background:#fff; border:1px solid var(--edge); border-radius:16px; box-shadow:0 8px 14px rgba(0,0,0,.05);
-    }
+
+    /* Card + basic UI */
+    .card{background:#fff; border:1px solid var(--edge); border-radius:16px; box-shadow:0 8px 14px rgba(0,0,0,.05)}
     .pad{ padding:16px }
-    .filters h2{ margin:0 0 2px 0; font-size:1.25rem }
     .muted{ color:#64748B }
-    .row{ display:flex; gap:8px; align-items:center }
+
+    /* Filters */
+    .filters h2{ margin:0 0 2px 0; font-size:1.25rem }
+    .row{ display:flex; gap:8px; align-items:center; justify-content:space-between }
     .chips{ display:flex; flex-wrap:wrap; gap:8px }
     .chip{
       display:inline-flex; align-items:center; gap:8px;
       font-size:.75rem; font-weight:600; line-height:1;
       padding:6px 10px; border-radius:9999px; user-select:none; cursor:default;
       border:1px solid rgba(0,0,0,.08);
+      background:#fff; color:var(--text);
     }
     .chip.btn{ cursor:pointer }
     .chip[data-selected="1"]{ outline:2px solid var(--aqua); outline-offset:1px }
+
+    /* Live status dot + animated glow */
     .chip .dot{
       width:10px; height:10px; border-radius:50%;
       background: currentColor;
-      box-shadow:
-        0 0 0 4px rgba(0,0,0,0),         /* will be overridden inline */
-        0 0 10px 2px rgba(0,0,0,0);      /* overridden inline */
-      filter:saturate(1.2);
+      position: relative;
     }
-    /* Cards grid */
-    .grid{ display:grid; gap:16px; grid-template-columns: 1fr; }
-    @media (min-width: 640px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 1200px){ .grid{ grid-template-columns: repeat(3, 1fr); } }
+    .chip .dot.live{
+      animation: dotPulse 1.8s ease-in-out infinite;
+    }
+    .chip .dot.live::after{
+      content:""; position:absolute; inset:-6px; border-radius:50%;
+      background: currentColor; opacity:.35;
+      animation: dotRing 1.8s ease-in-out infinite;
+      filter: saturate(1.2);
+    }
+    @keyframes dotPulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.25) } }
+    @keyframes dotRing { 0%{ transform:scale(.8); opacity:.35 } 70%{ transform:scale(1.6); opacity:0 } 100%{ transform:scale(.8); opacity:0 } }
+    @media (prefers-reduced-motion: reduce){
+      .chip .dot.live, .chip .dot.live::after{ animation:none }
+    }
+
+    /* Tool cards */
     .tool{ display:flex; flex-direction:column; gap:8px; transition: box-shadow .2s ease }
     .tool:hover{ box-shadow:0 12px 18px rgba(0,0,0,.07) }
     .imgwrap{ overflow:hidden; border-radius:12px; height:160px; background:#e5e7eb }
     .imgwrap img{ width:100%; height:100%; object-fit:cover; display:block }
     .tool h3{ font-size:1rem; margin:2px 0 0 0 }
-    .tool .meta{ font-size:.8rem; color:#64748B }
+    .meta{ font-size:.8rem; color:#64748B }
     .kvs{ display:grid; gap:6px; margin-top:6px; font-size:.9rem }
     .kv{ display:flex; gap:10px; align-items:flex-start }
     .kv .k{ min-width:120px; color:#64748B; flex-shrink:0 }
-    .count{ margin:8px 0 0 0; font-size:.9rem }
-    .divider{ height:1px; background:var(--edge); margin:8px 0 }
-    .footer-note{ font-size:.85rem; color:#64748B }
     a.cardlink{ color:inherit; text-decoration:none }
-    .legend li{ display:flex; gap:8px; align-items:center; }
+
+    /* Masonry layout (CSS columns) */
+    .masonry{ column-width: 320px; column-gap:16px }
+    @media (max-width: 640px){ .masonry{ column-width: 100% } }
+    .masonry .item{ break-inside: avoid; margin:0 0 16px }
+
+    /* Little helper to clamp long names */
+    .line-clamp-1{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <main class="layout">
-      <!-- LEFT: Filters + Grid + Info -->
-      <section class="maincol">
-
-        <!-- Filters -->
-        <div class="card pad filters">
-          <div class="row" style="justify-content:space-between; align-items:flex-start">
-            <div>
-              <h2>Explore Tools</h2>
-              <div id="count" class="count muted">Loading…</div>
-            </div>
-            <div>
-              <button id="clearBtn" class="chip btn" style="background:#fff">Clear</button>
-            </div>
-          </div>
-
-          <div style="margin-top:10px; font-size:.8rem; color:#475569">Categories</div>
-          <div id="catChips" class="chips" style="margin-top:6px"></div>
-
-          <div style="margin-top:10px; font-size:.8rem; color:#475569">Status</div>
-          <div id="statChips" class="chips" style="margin-top:6px"></div>
+    <!-- Filters -->
+    <div class="card pad filters">
+      <div class="row" style="align-items:flex-start">
+        <div>
+          <h2>Explore Tools</h2>
+          <div id="count" class="muted" style="margin-top:4px; font-size:.9rem">Loading…</div>
         </div>
+        <button id="clearBtn" class="chip btn">Clear</button>
+      </div>
 
-        <!-- Grid -->
-        <div id="grid" class="grid" aria-live="polite"></div>
+      <div style="margin-top:10px; font-size:.8rem; color:#475569">Categories</div>
+      <div id="catChips" class="chips" style="margin-top:6px"></div>
 
-        <!-- Info blocks -->
-        <div class="card pad" style="margin-top:16px">
-          <h3 style="margin:0 0 6px 0; font-size:1rem">Materials: quick notes</h3>
-          <ul style="margin:6px 0 0 16px; padding:0; color:#334155; font-size:.95rem">
-            <li><b>Laser:</b> Acrylic, plywood, paper/card are OK. <b>No PVC, vinyl, polycarbonate.</b></li>
-            <li><b>3D Print:</b> Sandbox policy is <b>PLA only</b>.</li>
-            <li><b>Machining:</b> Aluminum & plastics common; check in on steels. Bring material info.</li>
-          </ul>
-        </div>
+      <div style="margin-top:10px; font-size:.8rem; color:#475569">Status</div>
+      <div id="statChips" class="chips" style="margin-top:6px"></div>
+    </div>
 
-        <div class="card pad" style="margin-top:16px">
-          <h3 style="margin:0 0 6px 0; font-size:1rem">Prep your files</h3>
-          <ul style="margin:6px 0 0 16px; padding:0; color:#334155; font-size:.95rem">
-            <li><b>Laser:</b> Vector (SVG, DXF) for cuts; high-contrast raster for engraves.</li>
-            <li><b>3D Print:</b> Export <b>STL/3MF</b>; check manifold/watertight; layer height 0.2 mm typical.</li>
-            <li><b>CNC:</b> Provide STEP + drawing; staff review setups & tooling.</li>
-          </ul>
-        </div>
+    <!-- Masonry grid (no sidebar) -->
+    <div id="grid" class="masonry" aria-live="polite" style="margin-top:16px"></div>
 
-      </section>
-
-      <!-- RIGHT: Sidebar -->
-      <aside class="sidebar">
-        <div class="card pad">
-          <h4 style="margin:0; font-size:.95rem">Legend</h4>
-          <ul class="legend" style="list-style:none; padding:0; margin:12px 0 0 0; color:#334155; font-size:.95rem">
-            <li><span class="chip" style="color:var(--green); background:rgba(110,150,59,.12); border-color:rgba(110,150,59,.25)">
-              <span class="dot" style="color:var(--green); box-shadow:0 0 0 4px rgba(110,150,59,.35), 0 0 10px 2px rgba(110,150,59,.35)"></span>
-              Operational</span> <span>Available for general use</span></li>
-            <li><span class="chip" style="color:var(--orange); background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.25)">Limited</span> <span>Staff-assisted / capacity-limited</span></li>
-            <li><span class="chip" style="color:var(--red); background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.25)">Out of Service</span> <span>Temporarily unavailable</span></li>
-            <li><span class="chip" style="color:var(--yellow); background:rgba(243,229,0,.12); border-color:rgba(243,229,0,.25)">Hazard Class 1</span> <span>Extra safety considerations</span></li>
-          </ul>
-        </div>
-
-        <div class="card pad" style="margin-top:16px">
-          <h4 style="margin:0; font-size:.95rem">Materials & Safety</h4>
-          <ul style="margin:10px 0 0 16px; padding:0; color:#334155; font-size:.95rem">
-            <li>Laser: <b>NO PVC/vinyl/polycarbonate</b>. Ask if unsure.</li>
-            <li>3D Printing: <b>PLA only</b> at Sandbox.</li>
-            <li>Machining: Deburr & clean after use.</li>
-            <li>Report issues to staff; we’ll tag and service tools.</li>
-            <li>No solo operation of power tools.</li>
-          </ul>
-        </div>
-      </aside>
-    </main>
-
-    <footer class="footer-note" style="margin-top:20px">
+    <footer style="margin-top:24px; font-size:.85rem; color:#E5E7EB">
       © <span id="year"></span> SIO • Sandbox Makerspace • Built for clarity and quick access
     </footer>
   </div>
@@ -165,7 +127,7 @@
     setup:       { label: "In Setup",    color: BRAND.aqua }
   };
   const HAZARD_META = {
-    "HC-0": { label: "Hazard Class 0", color: "rgba(148,163,184,.8)" }, // slate-400ish
+    "HC-0": { label: "Hazard Class 0", color: "rgba(148,163,184,.8)" },
     "HC-1": { label: "Hazard Class 1", color: BRAND.yellow },
     "HC-2": { label: "Hazard Class 2", color: BRAND.orange },
     "HC-3": { label: "Hazard Class 3", color: BRAND.red }
@@ -173,29 +135,26 @@
 
   // --- DOM
   const els = {
+    year: document.getElementById('year'),
     count: document.getElementById('count'),
     grid: document.getElementById('grid'),
     catChips: document.getElementById('catChips'),
     statChips: document.getElementById('statChips'),
     clearBtn: document.getElementById('clearBtn')
   };
-
-  document.getElementById('year').textContent = new Date().getFullYear();
+  els.year.textContent = new Date().getFullYear();
 
   // --- Utils
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function hexToRgb(hex){
-    const h = hex.replace('#',''); const n = parseInt(h,16);
-    return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
-  }
+  function hexToRgb(hex){ const h=hex.replace('#',''); const n=parseInt(h,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
   function withAlpha(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
   function uniq(arr){ return [...new Set(arr)]; }
   function sortStr(a,b){ return String(a).localeCompare(String(b)); }
 
-  // --- Status/Hazard normalization
+  // Normalize status/hazard from sheet text
   function normStatus(s){
     const v = String(s||'').trim().toLowerCase();
-    if (/(down|offline|out\s*of\s*service)/.test(v)) return 'out';
+    if (/(down|offline|out\\s*of\\s*service)/.test(v)) return 'out';
     if (/(restricted|limited)/.test(v)) return 'limited';
     if (/(setup|in setup|commission)/.test(v)) return 'setup';
     return 'operational';
@@ -203,31 +162,31 @@
   function normHazard(h){
     const v = String(h||'').trim();
     if (!v) return 'HC-0';
-    const key = (v.toUpperCase().startsWith('HC-')? v.toUpperCase() : 'HC-' + v);
+    const key = (v.toUpperCase().startsWith('HC-') ? v.toUpperCase() : 'HC-'+v);
     return HAZARD_META[key] ? key : 'HC-0';
   }
 
-  // --- Spec parsing (first 3 key:value lines shown)
+  // Parse "Specs" multiline cell into [key,value] pairs
   function parseSpecsCell(specs){
     const out = [];
-    const lines = String(specs||'').replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
+    const lines = String(specs||'').replace(/\\r/g,'').split('\\n').map(x=>x.trim()).filter(Boolean);
     for (const line of lines){
-      const m = line.match(/^([^:]+):\s*(.*)$/);
+      const m = line.match(/^([^:]+):\\s*(.*)$/);
       if (m) out.push([m[1].trim(), m[2].trim()]);
       else out.push(['Notes', line]);
     }
     return out;
   }
 
-  // --- CSV / GVIZ loaders
-  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
+  // CSV / gviz helpers
+  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\\s+/g,'_'); }
   function parseCSV(text){
     const rows=[]; let i=0, field='', row=[], inQ=false;
     function pushF(){ row.push(field); field=''; }
     function pushR(){ rows.push(row); row=[]; }
     while(i<text.length){
       const ch=text[i++]; if(inQ){ if(ch=='"'){ if(text[i]=='"'){field+='"'; i++;} else inQ=false; } else field+=ch; }
-      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\r'){} else if(ch=='\n'){ pushF(); pushR(); } else field+=ch; }
+      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\\r'){} else if(ch=='\\n'){ pushF(); pushR(); } else field+=ch; }
     }
     pushF(); if(row.length) pushR();
     if(rows.length<2) return [];
@@ -241,7 +200,7 @@
     return out;
   }
   function parseGviz(txt){
-    const json = JSON.parse(txt.replace(/^[^{]+/,'').replace(/;?\s*$/,''));
+    const json = JSON.parse(txt.replace(/^[^{]+/,'').replace(/;?\\s*$/,''));
     const cols = (json.table.cols||[]).map(c=>normalizeKey(c.label));
     const rows = json.table.rows || [];
     const out=[];
@@ -271,17 +230,17 @@
     return { name, category, location, status, hazard, usage, image, detail, specs };
   }
 
-  // --- State
+  // State
   let ALL_TOOLS = [];
   let categorySel = 'All';
   const statusSel = new Set(); // 'operational' | 'limited' | 'out' | 'setup'
 
-  // --- Rendering
+  // Chip HTML generator (subtle translucent fills & borders)
   function chipHTML({label, color, glow, selected, button}){
     const bg = withAlpha(color, 0.12), bd = withAlpha(color, 0.25);
     const selAttr = selected ? ' data-selected="1"' : '';
     const cls = 'chip' + (button? ' btn':'');
-    const dot = glow ? `<span class="dot" style="color:${esc(color)}; box-shadow:0 0 0 4px ${withAlpha(color,.35)}, 0 0 10px 2px ${withAlpha(color,.35)}"></span>` : '';
+    const dot = glow ? `<span class="dot live" style="color:${esc(color)}"></span>` : '';
     return `<span class="${cls}"${selAttr} style="color:${esc(color)}; background:${bg}; border-color:${bd}">${dot}${esc(label)}</span>`;
   }
 
@@ -298,7 +257,8 @@
     const statuses = ['operational','limited','out','setup'];
     const statEls = statuses.map(k => {
       const meta = STATUS_META[k];
-      const html = chipHTML({label:meta.label, color:meta.color, glow:(k==='operational'), selected:statusSel.has(k), button:true});
+      // Glow on filter chips is optional; keeping them static for clarity.
+      const html = chipHTML({label:meta.label, color:meta.color, glow:false, selected:statusSel.has(k), button:true});
       return `<button type="button" class="stat" data-stat="${k}" style="all:unset">${html}</button>`;
     }).join('');
     els.statChips.innerHTML = statEls;
@@ -320,7 +280,7 @@
   function renderGrid(list){
     els.count.textContent = `Showing ${list.length} of ${ALL_TOOLS.length}`;
     if (!list.length){
-      els.grid.innerHTML = `<div class="card pad muted" style="text-align:center">No tools match your filters.</div>`;
+      els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">No tools match your filters.</div></div>`;
       return;
     }
     const cards = list.map(t => {
@@ -329,11 +289,11 @@
 
       const img = t.image ? `<div class="imgwrap"><img src="${esc(t.image)}" alt="${esc(t.name)} photo" loading="lazy"></div>` : `<div class="imgwrap"></div>`;
 
+      // Status chip has the animated live glow
       const statusChip = chipHTML({label:stat.label, color:stat.color, glow:true});
       const hazardChip = haz ? chipHTML({label:haz.label, color:haz.color, glow:false}) : '';
       const usageChip = t.usage ? chipHTML({label:t.usage, color:BRAND.aqua, glow:false}) : '';
 
-      // Show up to 3 specs
       const specRows = (t.specs||[]).slice(0,3).map(([k,v]) =>
         `<div class="kv"><span class="k">${esc(k)}:</span><span class="v">${esc(v)}</span></div>`
       ).join('');
@@ -341,7 +301,7 @@
       const inner = `
         <article class="tool card pad" aria-label="${esc(t.name)}">
           ${img}
-          <div class="row" style="justify-content:space-between; align-items:flex-start; gap:12px">
+          <div class="row" style="align-items:flex-start; gap:12px">
             <div style="min-width:0">
               <div class="meta">${esc(t.category||'')}</div>
               <h3 class="line-clamp-1">${esc(t.name)}</h3>
@@ -356,27 +316,27 @@
           <div class="chips" style="margin-top:8px">${usageChip}</div>
         </article>`;
 
-      // If Detail URL exists, make the whole card clickable
-      if (t.detail){
-        return `<a class="cardlink" href="${esc(t.detail)}" target="_blank" rel="noopener">${inner}</a>`;
-      }
-      return inner;
+      const content = t.detail
+        ? `<a class="cardlink" href="${esc(t.detail)}" target="_blank" rel="noopener">${inner}</a>`
+        : inner;
+
+      return `<div class="item">${content}</div>`;
     }).join('');
 
     els.grid.innerHTML = cards;
   }
 
   function renderAll(){
+    renderFilters();
     const list = ALL_TOOLS.filter(t => {
       if (categorySel !== 'All' && t.category !== categorySel) return false;
       if (statusSel.size && !statusSel.has(t.status)) return false;
       return true;
     });
-    renderFilters();
     renderGrid(list);
   }
 
-  // --- Load data from ?csv= or ?sheet=&gid=
+  // Load data from ?csv= or ?sheet=&gid=
   (async function load(){
     try{
       const params = new URLSearchParams(location.search);
@@ -394,7 +354,7 @@
         if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
         rows = parseGviz(await fetchText(url));
       } else {
-        els.grid.innerHTML = `<div class="card pad muted" style="text-align:center">Pass <code>?sheet=…&gid=…</code> or <code>?csv=…</code> in the URL.</div>`;
+        els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">Pass <code>?sheet=…&gid=…</code> or <code>?csv=…</code> in the URL.</div></div>`;
         els.count.textContent = `Showing 0 of 0`;
         return;
       }
@@ -403,7 +363,7 @@
       renderAll();
     }catch(err){
       console.error(err);
-      els.grid.innerHTML = `<div class="card pad" style="color:#B91C1C; border-left:4px solid var(--red)">Failed to load data. Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div>`;
+      els.grid.innerHTML = `<div class="item"><div class="card pad" style="color:#B91C1C; border-left:4px solid var(--red)">Failed to load data. Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div></div>`;
       els.count.textContent = `Showing 0 of 0`;
     }
   })();
