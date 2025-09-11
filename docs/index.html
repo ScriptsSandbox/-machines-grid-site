@@ -1,406 +1,404 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Explore Tools</title>
+  <title>Machines Grid (Static)</title>
+  <style>
+    :root{
+      /* UCSD-ish palette + your background */
+      --page-grey:#747678;
+      --ok:#6E963B;     /* status: Operational */
+      --warn:#F3E500;   /* status: Restricted / Hazard */
+      --danger:#EF4444; /* status: Down */
+      --access:#00C6D7; /* access chips */
+      --text:#0f172a;
+      --card:#ffffff;
+      --card-edge:#e5e7eb;
+    }
+    html,body{margin:0;padding:0;background:var(--page-grey);color:var(--text);font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px 16px 48px}
+    .toolbar{
+      display:grid; gap:12px; grid-template-columns: 1fr repeat(4, minmax(0, 180px));
+      background:#ffffffaa; backdrop-filter: blur(6px);
+      padding:12px; border-radius:16px; border:1px solid var(--card-edge);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .toolbar input, .toolbar select, .toolbar button{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--card-edge); background:#fff
+    }
+    .toolbar button{cursor:pointer; border-color: transparent; background:#111827; color:#fff}
+    .grid{
+      margin-top:16px;
+      display:grid; gap:16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+    }
+    .card{
+      display:flex; flex-direction:column; background:var(--card); border:1px solid var(--card-edge);
+      border-radius:16px; overflow:hidden;
+      box-shadow: 0 10px 14px rgba(0,0,0,.06);
+    }
+    .thumb{aspect-ratio:16/9; background:#f1f5f9; display:block; width:100%; object-fit:cover}
+    .pad{padding:14px}
+    .name{font-weight:700; font-size:1.05rem; margin:0 0 6px 0}
+    .muted{color:#475569; font-size:.9rem}
+    .chips{display:flex; flex-direction:column; gap:4px; margin-top:8px}
+
+    /* Base chip */
+    .chip{
+      font-size:.85rem; display:flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:9999px; line-height:1;
+      border:1px solid var(--card-edge); background:#fff; color:#111827;
+      width:max-content;
+    }
+    /* Filled variant uses --chip-bg (set inline) with a subtle/tinted look */
+    .chip.filled{
+      border-color: rgba(0,0,0,.06);
+      background: rgba(0,0,0,.02);
+      color:#111827;
+    }
+
+    /* Subtle live glow only for STATUS chip dot */
+    .chip.status::before{
+      content:"";
+      width:8px; height:8px; border-radius:50%;
+      background:var(--dot-color,var(--card-edge));
+      /* gentle, not flashy */
+      filter: drop-shadow(0 0 3px var(--dot-color,var(--card-edge)));
+      animation: dotPulse 2.4s ease-in-out infinite;
+      opacity:.95;
+    }
+    @keyframes dotPulse{
+      0%,100% { transform: scale(1); }
+      50%     { transform: scale(1.18); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .chip.status::before{ animation:none; filter:none; }
+    }
+
+    .row{display:flex; gap:8px; align-items:center; margin-top:6px}
+    .row strong{font-weight:600}
+    .actions{margin-top:auto; display:flex; gap:8px; padding:12px; border-top:1px solid var(--card-edge)}
+    .btn{flex:1; text-align:center; text-decoration:none; padding:10px 12px; border-radius:10px; border:1px solid var(--card-edge); background:#fff; color:#111827}
+    .btn.primary{background:#111827; color:#fff; border-color:transparent}
+    .count{margin:12px 4px; color:#1f2937}
+    .bar{height:4px; width:100%}
+    .err{background:#fff; border-left:4px solid var(--danger); padding:12px; border-radius:8px; margin-top:12px}
+
+    /* Hide “Get Access” for now */
+    .actions .btn.primary{ display:none !important; }
+  </style>
 
   <!-- Inter font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --aqua:#00C6D7;     /* brand aqua */
-      --green:#6E963B;    /* operational */
-      --yellow:#F3E500;   /* hazard/limited accent */
-      --orange:#F59E0B;   /* limited status */
-      --red:#EF4444;      /* out-of-service */
-      --text:#0F172A;
-      --edge:#E2E8F0;     /* slate-200-ish */
-    }
-    html,body{
-      margin:0; padding:0; background:#747678; color:var(--text);
-      font:16px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-    }
-    .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 56px}
-
-    /* Card + basic UI */
-    .card{background:#fff; border:1px solid var(--edge); border-radius:16px; box-shadow:0 8px 14px rgba(0,0,0,.05)}
-    .pad{ padding:16px }
-    .muted{ color:#64748B }
-    .error{ color:#B91C1C }
-
-    /* Filters */
-    .filters h2{ margin:0 0 2px 0; font-size:1.5rem; letter-spacing:.2px }
-    .row{ display:flex; gap:8px; align-items:center; justify-content:space-between }
-    .chips{ display:flex; flex-wrap:wrap; gap:8px }
-    .chip{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:.8rem; font-weight:600; line-height:1;
-      padding:8px 12px; border-radius:9999px; user-select:none; cursor:default;
-      border:1px solid rgba(0,0,0,.08);
-      background:#fff; color:var(--text);
-    }
-    .chip.btn{ cursor:pointer }
-    .chip[data-selected="1"]{ outline:3px solid var(--aqua); outline-offset:1px }
-
-    /* Live status dot + animated glow */
-    .chip .dot{
-      width:10px; height:10px; border-radius:50%;
-      background: currentColor;
-      position: relative;
-    }
-    .chip .dot.live{ animation: dotPulse 1.8s ease-in-out infinite; }
-    .chip .dot.live::after{
-      content:""; position:absolute; inset:-6px; border-radius:50%;
-      background: currentColor; opacity:.35;
-      animation: dotRing 1.8s ease-in-out infinite; filter: saturate(1.2);
-    }
-    @keyframes dotPulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.25) } }
-    @keyframes dotRing { 0%{ transform:scale(.8); opacity:.35 } 70%{ transform:scale(1.6); opacity:0 } 100%{ transform:scale(.8); opacity:0 } }
-    @media (prefers-reduced-motion: reduce){
-      .chip .dot.live, .chip .dot.live::after{ animation:none }
-    }
-
-    /* Tool cards */
-    .tool{ display:flex; flex-direction:column; gap:8px; transition: box-shadow .2s ease }
-    .tool:hover{ box-shadow:0 12px 18px rgba(0,0,0,.07) }
-    .imgwrap{ overflow:hidden; border-radius:12px; height:160px; background:#e5e7eb }
-    .imgwrap img{ width:100%; height:100%; object-fit:cover; display:block }
-    .tool h3{ font-size:1.05rem; margin:2px 0 0 0 }
-    .meta{ font-size:.85rem; color:#64748B }
-    .kvs{ display:grid; gap:6px; margin-top:6px; font-size:.95rem }
-    .kv{ display:flex; gap:10px; align-items:flex-start }
-    .kv .k{ min-width:120px; color:#64748B; flex-shrink:0 }
-    a.cardlink{ color:inherit; text-decoration:none }
-    .line-clamp-1{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden }
-
-    /* Masonry layout (CSS columns) */
-    .masonry{ column-width: 320px; column-gap:16px }
-    @media (max-width: 640px){ .masonry{ column-width: 100% } }
-    .masonry .item{ break-inside: avoid; margin:0 0 16px }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="wrap">
-    <!-- Filters -->
-    <div class="card pad filters">
-      <div class="row" style="align-items:flex-start">
-        <div>
-          <h2>Explore Tools</h2>
-          <div id="count" class="muted" style="margin-top:4px; font-size:.95rem">Loading…</div>
-        </div>
-        <button id="clearBtn" class="chip btn">Clear</button>
-      </div>
-
-      <div style="margin-top:10px; font-size:.9rem; color:#475569">Categories</div>
-      <div id="catChips" class="chips" style="margin-top:6px"></div>
-
-      <div style="margin-top:10px; font-size:.9rem; color:#475569">Status</div>
-      <div id="statChips" class="chips" style="margin-top:6px"></div>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Search machines, tags, specs…" />
+      <select id="fCategory"><option value="">All categories</option></select>
+      <select id="fLocation"><option value="">All locations</option></select>
+      <select id="fStatus">
+        <option value="">All status</option>
+        <option>Operational</option>
+        <option>Restricted</option>
+        <option>Down</option>
+      </select>
+      <select id="fHazard">
+        <option value="">All hazard</option>
+        <option value="1">Hazard 1</option>
+        <option value="2">Hazard 2</option>
+        <option value="3">Hazard 3</option>
+      </select>
+      <button id="resetBtn" type="button">Reset</button>
     </div>
 
-    <!-- Masonry grid -->
-    <div id="grid" class="masonry" aria-live="polite" style="margin-top:16px"></div>
-
-    <footer style="margin-top:24px; font-size:.9rem; color:#E5E7EB">
-      © <span id="year"></span> SIO • Sandbox Makerspace • Built for clarity and quick access
-    </footer>
+    <div class="count" id="count">Loading…</div>
+    <div class="grid" id="grid"></div>
+    <div id="error" class="err" style="display:none"></div>
   </div>
 
 <script>
+/*
+Usage (pick one):
+- Published Sheet:
+  https://<your-site>/index.html?sheet=YOUR_SHEET_ID&gid=TAB_GID
+- Published CSV (2PACX link):
+  https://<your-site>/index.html?csv=FULL_CSV_URL (URL-encoded)
+*/
+
 (function(){
-  // --- Brand + meta
-  const BRAND = {
-    aqua: "#00C6D7", green:"#6E963B", yellow:"#F3E500", orange:"#F59E0B", red:"#EF4444"
-  };
-  const STATUS_META = {
-    operational: { label: "Operational", color: BRAND.green },
-    limited:     { label: "Limited",     color: BRAND.orange },
-    out:         { label: "Out of Service", color: BRAND.red },
-    setup:       { label: "In Setup",    color: BRAND.aqua }
-  };
-  const HAZARD_META = {
-    "HC-0": { label: "Hazard Class 0", color: "rgba(148,163,184,.8)" },
-    "HC-1": { label: "Hazard Class 1", color: BRAND.yellow },
-    "HC-2": { label: "Hazard Class 2", color: BRAND.orange },
-    "HC-3": { label: "Hazard Class 3", color: BRAND.red }
-  };
-
-  // --- DOM
   const els = {
-    year: document.getElementById('year'),
-    count: document.getElementById('count'),
+    q: document.getElementById('q'),
+    fCategory: document.getElementById('fCategory'),
+    fLocation: document.getElementById('fLocation'),
+    fStatus: document.getElementById('fStatus'),
+    fHazard: document.getElementById('fHazard'),
+    resetBtn: document.getElementById('resetBtn'),
     grid: document.getElementById('grid'),
-    catChips: document.getElementById('catChips'),
-    statChips: document.getElementById('statChips'),
-    clearBtn: document.getElementById('clearBtn')
+    count: document.getElementById('count'),
+    error: document.getElementById('error')
   };
-  els.year.textContent = new Date().getFullYear();
 
-  // --- Utils
-  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-  function hexToRgb(hex){ const h=hex.replace('#',''); const n=parseInt(h,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
-  function withAlpha(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
-  function uniq(arr){ return [...new Set(arr)]; }
-  function sortStr(a,b){ return String(a).localeCompare(String(b)); }
+  const params = new URLSearchParams(location.search);
+  const csvUrl = getCsvUrlFromParams(params);      // tolerant csv param
+  const sheetId = params.get('sheet');
+  const gid = params.get('gid');
+  const sheetName = params.get('sheetName'); // optional alternative to gid
 
-  // Normalize status/hazard from sheet text
-  function normStatus(s){
-    const v = String(s||'').trim().toLowerCase();
-    if (/(down|offline|out\s*of\s*service)/.test(v)) return 'out';
-    if (/(restricted|limited)/.test(v)) return 'limited';
-    if (/(setup|in setup|commission)/.test(v)) return 'setup';
-    return 'operational';
-  }
-  function normHazard(h){
-    const v = String(h||'').trim();
-    if (!v) return 'HC-0';
-    const key = (v.toUpperCase().startsWith('HC-') ? v.toUpperCase() : 'HC-'+v);
-    return HAZARD_META[key] ? key : 'HC-0';
+  function gvizUrl() {
+    if (sheetId && gid) {
+      return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(sheetId) + '/gviz/tq?tqx=out:json&gid=' + encodeURIComponent(gid);
+    }
+    if (sheetId && sheetName) {
+      return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(sheetId) + '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(sheetName);
+    }
+    return null;
   }
 
-  // Parse "Specs" multiline cell into [key,value] pairs
-  function parseSpecsCell(specs){
-    const out = [];
-    const lines = String(specs||'').replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
-    for (const line of lines){
-      const m = line.match(/^([^:]+):\s*(.*)$/);
-      if (m) out.push([m[1].trim(), m[2].trim()]);
-      else out.push(['Notes', line]);
-    }
-    return out;
-  }
-
-  // CSV / gviz helpers
-  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
-
-  function parseCSV(text){
-    const rows=[]; let i=0, field='', row=[], inQ=false;
-    function pushF(){ row.push(field); field=''; }
-    function pushR(){ rows.push(row); row=[]; }
-    while(i<text.length){
-      const ch=text[i++]; if(inQ){ if(ch=='"'){ if(text[i]=='"'){field+='"'; i++;} else inQ=false; } else field+=ch; }
-      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\r'){} else if(ch=='\n'){ pushF(); pushR(); } else field+=ch; }
-    }
-    pushF(); if(row.length) pushR();
-    if(rows.length<2) return [];
-    const headers = rows[0].map(normalizeKey);
-    const out=[];
-    for(let r=1;r<rows.length;r++){
-      const line=rows[r]; if(!line.some(v=>v && String(v).trim()!=='')) continue;
-      const obj={}; headers.forEach((k,idx)=> obj[k]=(line[idx]||'').toString());
-      out.push(obj);
-    }
-    return out;
-  }
-
-  function parseGviz(txt){
-    const json = JSON.parse(txt.replace(/^[^{]+/,'').replace(/;?\s*$/,''));
-    const cols = (json.table.cols||[]).map(c=>normalizeKey(c.label));
-    const rows = json.table.rows || [];
-    const out=[];
-    for(const r of rows){
-      const cells = r.c || []; const obj={};
-      cols.forEach((key,i)=> obj[key] = cells[i] ? (cells[i].v != null ? String(cells[i].v) : '') : '');
-      out.push(obj);
-    }
-    return out;
-  }
-
-  // Only cache-bust HTTP(S); do not modify data: or blob:
-  async function fetchText(url){
-    const u = new URL(url, location.href);
-    const proto = u.protocol;
-    if (proto === 'http:' || proto === 'https:') {
-      u.searchParams.set('cb', String(Date.now()));
-    }
-    const res = await fetch(u.toString(), { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const txt = await res.text();
-
-    // If we accidentally got HTML, surface a clear message
-    if (/^\s*</.test(txt)) {
-      throw new Error('Received HTML instead of CSV/JSON — check Publish to web / sharing.');
-    }
-    return txt;
-  }
-
-  // Accept both encoded and unencoded CSV links; rebuild extras if needed
-  function getCsvUrlFromParams(params){
-    let url = params.get('csv');
+  function getCsvUrlFromParams(p){
+    let url = p.get('csv');
     if (!url) return null;
-    // If user pasted unencoded CSV, gid/single/output got split into separate params.
-    if (url && !url.includes('?')) {
+    // If someone pasted an unencoded CSV and WP split params, rebuild them.
+    if (!url.includes('?')) {
       const extras = [];
       ['gid','single','output'].forEach(k => {
-        const v = params.get(k);
-        if (v != null) extras.push(`${k}=${encodeURIComponent(v)}`);
+        const v = p.get(k);
+        if (v != null) extras.push(k + '=' + encodeURIComponent(v));
       });
       if (extras.length) url += '?' + extras.join('&');
     }
     return url;
   }
 
-  function mapRow(obj){
-    const name = obj.name || obj['Name'] || '';
-    const category = obj.category || obj['Category'] || '';
-    const location = obj.location || obj['Location'] || '';
-    const status = normStatus(obj.status || obj['Status'] || 'operational');
-    const hazard = normHazard(obj.hazard_class || obj['Hazard Class'] || '0');
-    const usage = obj.access || obj['Access'] || '';
-    const image = obj.thumbnail_url || obj['Thumbnail URL'] || '';
-    const detail = obj.detail_url || obj['Detail URL'] || '';
-    const specs = parseSpecsCell(obj.specs || obj['Specs'] || '');
-    return { name, category, location, status, hazard, usage, image, detail, specs };
+  function showError(msg) {
+    els.error.style.display = 'block';
+    els.error.textContent = msg;
+    els.count.textContent = '0 machines shown';
   }
 
-  // State
-  let ALL_TOOLS = [];
-  let categorySel = 'All';
-  const statusSel = new Set(); // 'operational' | 'limited' | 'out' | 'setup'
-
-  // Chip HTML generator (subtle translucent fills & borders)
-  function chipHTML({label, color, glow, selected, button}){
-    const bg = withAlpha(color, 0.12), bd = withAlpha(color, 0.25);
-    const selAttr = selected ? ' data-selected="1"' : '';
-    const cls = 'chip' + (button? ' btn':'');
-    const dot = glow ? `<span class="dot live" style="color:${esc(color)}"></span>` : '';
-    return `<span class="${cls}"${selAttr} style="color:${esc(color)}; background:${bg}; border-color:${bd}">${dot}${esc(label)}</span>`;
-  }
-
-  function renderFilters(){
-    // Categories
-    const cats = uniq(ALL_TOOLS.map(t=>t.category).filter(Boolean)).sort(sortStr);
-    const catEls = ['All', ...cats].map(c => {
-      const html = chipHTML({label:c, color:BRAND.aqua, glow:false, selected:(categorySel===c), button:true});
-      return `<button type="button" class="cat" data-cat="${esc(c)}" style="all:unset">${html}</button>`;
-    }).join('');
-    document.getElementById('catChips').innerHTML = catEls;
-
-    // Status chips
-    const statuses = ['operational','limited','out','setup'];
-    const statEls = statuses.map(k => {
-      const meta = STATUS_META[k];
-      const html = chipHTML({label:meta.label, color:meta.color, glow:false, selected:statusSel.has(k), button:true});
-      return `<button type="button" class="stat" data-stat="${k}" style="all:unset">${html}</button>`;
-    }).join('');
-    document.getElementById('statChips').innerHTML = statEls;
-
-    // Handlers
-    document.querySelectorAll('button.cat').forEach(btn => {
-      btn.onclick = () => { categorySel = btn.getAttribute('data-cat'); renderAll(); };
-    });
-    document.querySelectorAll('button.stat').forEach(btn => {
-      btn.onclick = () => {
-        const k = btn.getAttribute('data-stat');
-        if (statusSel.has(k)) statusSel.delete(k); else statusSel.add(k);
-        renderAll();
-      };
-    });
-    document.getElementById('clearBtn').onclick = () => { categorySel='All'; statusSel.clear(); renderAll(); };
-  }
-
-  function renderGrid(list){
-    els.count.textContent = `Showing ${list.length} of ${ALL_TOOLS.length}`;
-    if (!list.length){
-      els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">No tools match your filters.</div></div>`;
-      return;
-    }
-    const cards = list.map(t => {
-      const stat = STATUS_META[t.status] || STATUS_META.operational;
-      const haz = HAZARD_META[t.hazard];
-
-      const img = t.image ? `<div class="imgwrap"><img src="${esc(t.image)}" alt="${esc(t.name)} photo" loading="lazy"></div>` : `<div class="imgwrap"></div>`;
-
-      // Status chip has the animated live glow
-      const statusChip = chipHTML({label:stat.label, color:stat.color, glow:true});
-      const hazardChip = haz ? chipHTML({label:haz.label, color:haz.color, glow:false}) : '';
-      const usageChip = t.usage ? chipHTML({label:t.usage, color:BRAND.aqua, glow:false}) : '';
-
-      const specRows = (t.specs||[]).slice(0,3).map(([k,v]) =>
-        `<div class="kv"><span class="k">${esc(k)}:</span><span class="v">${esc(v)}</span></div>`
-      ).join('');
-
-      const inner = `
-        <article class="tool card pad" aria-label="${esc(t.name)}">
-          ${img}
-          <div class="row" style="align-items:flex-start; gap:12px">
-            <div style="min-width:0">
-              <div class="meta">${esc(t.category||'')}</div>
-              <h3 class="line-clamp-1">${esc(t.name)}</h3>
-              <div class="meta">${esc(t.location||'')}</div>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end">
-              ${statusChip}
-              ${hazardChip}
-            </div>
-          </div>
-          ${specRows ? `<div class="kvs">${specRows}</div>` : ''}
-          <div class="chips" style="margin-top:8px">${usageChip}</div>
-        </article>`;
-
-      const content = t.detail
-        ? `<a class="cardlink" href="${esc(t.detail)}" target="_blank" rel="noopener">${inner}</a>`
-        : inner;
-
-      return `<div class="item">${content}</div>`;
-    }).join('');
-
-    els.grid.innerHTML = cards;
-  }
-
-  function renderAll(){
-    renderFilters();
-    const list = ALL_TOOLS.filter(t => {
-      if (categorySel !== 'All' && t.category !== categorySel) return false;
-      if (statusSel.size && !statusSel.has(t.status)) return false;
-      return true;
-    });
-    renderGrid(list);
-  }
-
-  // Load data from ?csv= or ?sheet=&gid=
+  // Load data
   (async function load(){
-    try{
-      const params = new URLSearchParams(location.search);
-      const csvParam = getCsvUrlFromParams(params);
-      const sheet = params.get('sheet');
-      const gid = params.get('gid');
-      const sheetName = params.get('sheetName');
-
-      let rows = [];
-      if (csvParam){
-        const txt = await fetchText(csvParam);
-        // Headers-only guard
-        const lines = txt.replace(/\r/g,'').split('\n').filter(Boolean);
-        if (lines.length <= 1) {
-          throw new Error('CSV has headers but no data rows — republish the correct tab/range.');
-        }
-        rows = parseCSV(txt);
-      } else if (sheet && (gid || sheetName)){
-        let url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheet)}/gviz/tq?tqx=out:json`;
-        if (gid) url += `&gid=${encodeURIComponent(gid)}`;
-        if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
-        const txt = await fetchText(url);
-        rows = parseGviz(txt);
+    try {
+      let items = [];
+      if (csvUrl) {
+        const text = await fetchText(csvUrl);
+        // If CSV has only headers, show nicer message
+        const lines = text.replace(/\r/g,'').split('\n').filter(Boolean);
+        if (lines.length <= 1) throw new Error('CSV has headers but no data rows — republish the correct tab.');
+        items = parseCSV(text).map(normalize);
       } else {
-        els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">Pass <code>?sheet=…&gid=…</code> or <code>?csv=…</code> in the URL.</div></div>`;
-        els.count.textContent = `Showing 0 of 0`;
-        return;
+        const url = gvizUrl();
+        if (!url) {
+          showError('Missing source. Pass ?sheet=YOUR_SHEET_ID&gid=TAB_GID or ?csv=CSV_URL');
+          return;
+        }
+        const txt = await fetchText(url);
+        const json = JSON.parse(txt.replace(/^[^{]+/, '').replace(/;?\s*$/, '')); // /*O_o*/ ...;
+        items = gvizToItems(json).map(normalize);
       }
-
-      ALL_TOOLS = rows.map(mapRow);
-      renderAll();
-    }catch(err){
+      window.MACHINES = items;
+      setupFilters(items);
+      render(items);
+    } catch (err) {
       console.error(err);
-      els.grid.innerHTML = `<div class="item"><div class="card pad" style="border-left:6px solid var(--red)"><div class="error"><b>Failed to load data.</b> ${esc(err.message || '')} Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div></div></div>`;
-      els.count.textContent = `Showing 0 of 0`;
+      showError('Failed to load data. Ensure the tab is Published to the web and the URL params are correct.');
     }
   })();
+
+  // Safer fetch: only cache-bust http(s); detect HTML accidents
+  async function fetchText(url){
+    const u = new URL(url, location.href);
+    if (u.protocol === 'http:' || u.protocol === 'https:') {
+      u.searchParams.set('cb', Date.now());
+    }
+    const res = await fetch(u.toString(), {cache:'no-cache'});
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const txt = await res.text();
+    if (/^\s*</.test(txt)) throw new Error('Received HTML instead of CSV/JSON (check sharing/publish)');
+    return txt;
+  }
+
+  function gvizToItems(resp){
+    const cols = resp.table.cols.map(c => normalizeKey(c.label));
+    const rows = resp.table.rows || [];
+    const out = [];
+    for (const r of rows) {
+      const cells = r.c || [];
+      const obj = {};
+      cols.forEach((key, i) => {
+        obj[key] = cells[i] ? (cells[i].v != null ? String(cells[i].v) : '') : '';
+      });
+      out.push(obj);
+    }
+    return out;
+  }
+
+  function parseCSV(text){
+    // Tiny CSV parser for simple sheets (commas, quotes)
+    const rows = [];
+    let i = 0, field = '', row = [], inQuotes = false;
+    function pushField(){ row.push(field); field=''; }
+    function pushRow(){ rows.push(row); row=[]; }
+    while (i < text.length) {
+      const ch = text[i++];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (text[i] === '"') { field += '"'; i++; }
+          else { inQuotes = false; }
+        } else field += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ',') pushField();
+        else if (ch === '\r') {}
+        else if (ch === '\n') { pushField(); pushRow(); }
+        else field += ch;
+      }
+    }
+    pushField(); if (row.length) pushRow();
+    if (rows.length < 2) return [];
+    const headers = rows[0].map(h => normalizeKey(h));
+    const out = [];
+    for (let r = 1; r < rows.length; r++) {
+      const line = rows[r];
+      if (!line.some(v => v && String(v).trim() !== '')) continue;
+      const obj = {};
+      headers.forEach((k, idx) => obj[k] = (line[idx] || '').toString());
+      out.push(obj);
+    }
+    return out;
+  }
+
+  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
+
+  function normalize(obj){
+    // Only using fields from the sheet — no extra text injected
+    return {
+      name          : (obj.name||'').trim(),
+      category      : (obj.category||'').trim(),
+      location      : (obj.location||'').trim(),
+      status        : (obj.status||'').trim(),
+      hazard_class  : (obj.hazard_class || obj['hazard_class'] || '').trim(),
+      access        : (obj.access||'').trim(),
+      access_chips  : splitList(obj.access_chips || obj.accesschips),
+      tags          : splitList(obj.tags),
+      thumbnail_url : (obj.thumbnail_url || obj.thumbnailurl || '').trim(),
+      detail_url    : (obj.detail_url || obj.detailurl || '').trim(),
+      description   : (obj.description || '').trim(),
+      specs         : (obj.specs || '').trim(),
+      status_color  : pickStatusColor(obj.status),
+      hazard_color  : pickHazardColor(obj.hazard_class)
+    };
+  }
+
+  function splitList(val){ return (val ? String(val) : '').split(/[;,]/).map(s=>s.trim()).filter(Boolean); }
+  function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  function pickStatusColor(status){
+    const s = String(status||'').toLowerCase();
+    if (s.includes('down') || s.includes('offline') || s.includes('out of service')) return cssVar('--danger');
+    if (s.includes('restricted') || s.includes('limited')) return cssVar('--warn');
+    return cssVar('--ok'); // default Operational
+  }
+  function pickHazardColor(h){
+    const v = String(h||'').trim();
+    if (v === '3') return cssVar('--danger');
+    if (v === '2') return cssVar('--warn');
+    if (v === '1') return cssVar('--ok');
+    return cssVar('--card-edge');
+  }
+
+  // Filters
+  function setupFilters(data){
+    fillSelect(els.fCategory, uniqueSorted(data,'category'));
+    fillSelect(els.fLocation, uniqueSorted(data,'location'));
+    [els.q, els.fCategory, els.fLocation, els.fStatus, els.fHazard].forEach(el => el.addEventListener('input', filterAll));
+    els.resetBtn.addEventListener('click', () => {
+      els.q.value = ''; els.fCategory.value = ''; els.fLocation.value=''; els.fStatus.value=''; els.fHazard.value='';
+      filterAll();
+    });
+  }
+  function uniqueSorted(list, key){
+    return [...new Set(list.map(x => (x[key]||'').toString().trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  }
+  function fillSelect(select, values){
+    values.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      select.appendChild(opt);
+    });
+  }
+
+  function filterAll(){
+    const q = els.q.value.trim().toLowerCase();
+    const cat = els.fCategory.value;
+    const loc = els.fLocation.value;
+    const stat = els.fStatus.value;
+    const haz  = els.fHazard.value;
+    const list = (window.MACHINES || []).filter(m => {
+      if (cat && m.category !== cat) return false;
+      if (loc && m.location !== loc) return false;
+      if (stat && String(m.status||'').toLowerCase() !== String(stat).toLowerCase()) return false;
+      if (haz && String(m.hazard_class) !== String(haz)) return false;
+      if (q) {
+        const hay = [m.name, m.category, m.location, m.status, m.description, m.specs, (m.tags||[]).join(' ')].join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    render(list);
+  }
+
+  function esc(s){
+    return (s == null ? '' : String(s))
+      .replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function render(list){
+    els.count.textContent = list.length + ' machine' + (list.length===1?'':'s') + ' shown';
+    const html = list.map(m => {
+      const chips = [
+        // STATUS chip (colored dot only, subtle glow)
+        '<div class="chip status" style="--dot-color:'+esc(m.status_color)+'">'+esc(m.status||'—')+'</div>',
+        // HAZARD chip (no dot; color tint implied by text only to stick to sheet content)
+        (m.hazard_class ? '<div class="chip haz">'+('Hazard Class '+esc(m.hazard_class))+'</div>' : ''),
+        // ACCESS chips (plain, from sheet)
+        ...((m.access_chips||[]).map(c => '<div class="chip access">'+esc(c)+'</div>'))
+      ].join('');
+      const thumb = m.thumbnail_url ? '<img class="thumb" alt="" loading="lazy" src="'+esc(m.thumbnail_url)+'">' : '<div class="thumb"></div>';
+      const link  = m.detail_url ? '<a class="btn" href="'+esc(m.detail_url)+'" target="_blank" rel="noopener">Details</a>' : '';
+      return [
+        '<article class="card" aria-label="'+esc(m.name)+'">',
+          thumb,
+          '<div class="bar" style="background:'+esc(m.status_color)+'"></div>',
+          '<div class="pad">',
+            '<h3 class="name">'+esc(m.name)+'</h3>',
+            '<div class="muted">'+esc(m.category||'')+(m.category&&m.location?' · ':'')+esc(m.location||'')+'</div>',
+            '<div class="chips">'+chips+'</div>',
+            (m.description ? '<div class="row"><span class="muted">'+esc(m.description)+'</span></div>' : ''),
+            (m.specs ? '<div class="row"><strong>Specs:</strong><span class="muted" style="white-space:pre-wrap">'+esc(m.specs)+'</span></div>' : ''),
+          '</div>',
+          '<div class="actions">',
+            link,
+            '<a class="btn primary" href="javascript:void(0)">Get Access</a>',
+          '</div>',
+        '</article>'
+      ].join('');
+    }).join('');
+    els.grid.innerHTML = html || '<div class="muted">No machines match your filters.</div>';
+    tryPostHeight();
+  }
+
+  function tryPostHeight(){
+    try{
+      const h = document.documentElement.scrollHeight;
+      window.parent && window.parent.postMessage({type:'machines-grid-height', height:h}, '*');
+    }catch(e){}
+  }
+
+  window.addEventListener('resize', tryPostHeight);
 })();
 </script>
 </body>
