@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Explore Tools</title>
 
-  <!-- Inter font (safe for GH Pages + WP embeds) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -23,6 +23,7 @@
     html,body{
       margin:0; padding:0; background:#747678; color:var(--text);
       font:16px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
     .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 56px}
 
@@ -30,20 +31,21 @@
     .card{background:#fff; border:1px solid var(--edge); border-radius:16px; box-shadow:0 8px 14px rgba(0,0,0,.05)}
     .pad{ padding:16px }
     .muted{ color:#64748B }
+    .error{ color:#B91C1C }
 
     /* Filters */
-    .filters h2{ margin:0 0 2px 0; font-size:1.25rem }
+    .filters h2{ margin:0 0 2px 0; font-size:1.5rem; letter-spacing:.2px }
     .row{ display:flex; gap:8px; align-items:center; justify-content:space-between }
     .chips{ display:flex; flex-wrap:wrap; gap:8px }
     .chip{
       display:inline-flex; align-items:center; gap:8px;
-      font-size:.75rem; font-weight:600; line-height:1;
-      padding:6px 10px; border-radius:9999px; user-select:none; cursor:default;
+      font-size:.8rem; font-weight:600; line-height:1;
+      padding:8px 12px; border-radius:9999px; user-select:none; cursor:default;
       border:1px solid rgba(0,0,0,.08);
       background:#fff; color:var(--text);
     }
     .chip.btn{ cursor:pointer }
-    .chip[data-selected="1"]{ outline:2px solid var(--aqua); outline-offset:1px }
+    .chip[data-selected="1"]{ outline:3px solid var(--aqua); outline-offset:1px }
 
     /* Live status dot + animated glow */
     .chip .dot{
@@ -51,14 +53,11 @@
       background: currentColor;
       position: relative;
     }
-    .chip .dot.live{
-      animation: dotPulse 1.8s ease-in-out infinite;
-    }
+    .chip .dot.live{ animation: dotPulse 1.8s ease-in-out infinite; }
     .chip .dot.live::after{
       content:""; position:absolute; inset:-6px; border-radius:50%;
       background: currentColor; opacity:.35;
-      animation: dotRing 1.8s ease-in-out infinite;
-      filter: saturate(1.2);
+      animation: dotRing 1.8s ease-in-out infinite; filter: saturate(1.2);
     }
     @keyframes dotPulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.25) } }
     @keyframes dotRing { 0%{ transform:scale(.8); opacity:.35 } 70%{ transform:scale(1.6); opacity:0 } 100%{ transform:scale(.8); opacity:0 } }
@@ -71,20 +70,18 @@
     .tool:hover{ box-shadow:0 12px 18px rgba(0,0,0,.07) }
     .imgwrap{ overflow:hidden; border-radius:12px; height:160px; background:#e5e7eb }
     .imgwrap img{ width:100%; height:100%; object-fit:cover; display:block }
-    .tool h3{ font-size:1rem; margin:2px 0 0 0 }
-    .meta{ font-size:.8rem; color:#64748B }
-    .kvs{ display:grid; gap:6px; margin-top:6px; font-size:.9rem }
+    .tool h3{ font-size:1.05rem; margin:2px 0 0 0 }
+    .meta{ font-size:.85rem; color:#64748B }
+    .kvs{ display:grid; gap:6px; margin-top:6px; font-size:.95rem }
     .kv{ display:flex; gap:10px; align-items:flex-start }
     .kv .k{ min-width:120px; color:#64748B; flex-shrink:0 }
     a.cardlink{ color:inherit; text-decoration:none }
+    .line-clamp-1{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden }
 
     /* Masonry layout (CSS columns) */
     .masonry{ column-width: 320px; column-gap:16px }
     @media (max-width: 640px){ .masonry{ column-width: 100% } }
     .masonry .item{ break-inside: avoid; margin:0 0 16px }
-
-    /* Little helper to clamp long names */
-    .line-clamp-1{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden }
   </style>
 </head>
 <body>
@@ -94,22 +91,22 @@
       <div class="row" style="align-items:flex-start">
         <div>
           <h2>Explore Tools</h2>
-          <div id="count" class="muted" style="margin-top:4px; font-size:.9rem">Loading…</div>
+          <div id="count" class="muted" style="margin-top:4px; font-size:.95rem">Loading…</div>
         </div>
         <button id="clearBtn" class="chip btn">Clear</button>
       </div>
 
-      <div style="margin-top:10px; font-size:.8rem; color:#475569">Categories</div>
+      <div style="margin-top:10px; font-size:.9rem; color:#475569">Categories</div>
       <div id="catChips" class="chips" style="margin-top:6px"></div>
 
-      <div style="margin-top:10px; font-size:.8rem; color:#475569">Status</div>
+      <div style="margin-top:10px; font-size:.9rem; color:#475569">Status</div>
       <div id="statChips" class="chips" style="margin-top:6px"></div>
     </div>
 
-    <!-- Masonry grid (no sidebar) -->
+    <!-- Masonry grid -->
     <div id="grid" class="masonry" aria-live="polite" style="margin-top:16px"></div>
 
-    <footer style="margin-top:24px; font-size:.85rem; color:#E5E7EB">
+    <footer style="margin-top:24px; font-size:.9rem; color:#E5E7EB">
       © <span id="year"></span> SIO • Sandbox Makerspace • Built for clarity and quick access
     </footer>
   </div>
@@ -154,7 +151,7 @@
   // Normalize status/hazard from sheet text
   function normStatus(s){
     const v = String(s||'').trim().toLowerCase();
-    if (/(down|offline|out\\s*of\\s*service)/.test(v)) return 'out';
+    if (/(down|offline|out\s*of\s*service)/.test(v)) return 'out';
     if (/(restricted|limited)/.test(v)) return 'limited';
     if (/(setup|in setup|commission)/.test(v)) return 'setup';
     return 'operational';
@@ -169,9 +166,9 @@
   // Parse "Specs" multiline cell into [key,value] pairs
   function parseSpecsCell(specs){
     const out = [];
-    const lines = String(specs||'').replace(/\\r/g,'').split('\\n').map(x=>x.trim()).filter(Boolean);
+    const lines = String(specs||'').replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
     for (const line of lines){
-      const m = line.match(/^([^:]+):\\s*(.*)$/);
+      const m = line.match(/^([^:]+):\s*(.*)$/);
       if (m) out.push([m[1].trim(), m[2].trim()]);
       else out.push(['Notes', line]);
     }
@@ -179,14 +176,15 @@
   }
 
   // CSV / gviz helpers
-  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\\s+/g,'_'); }
+  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
+
   function parseCSV(text){
     const rows=[]; let i=0, field='', row=[], inQ=false;
     function pushF(){ row.push(field); field=''; }
     function pushR(){ rows.push(row); row=[]; }
     while(i<text.length){
       const ch=text[i++]; if(inQ){ if(ch=='"'){ if(text[i]=='"'){field+='"'; i++;} else inQ=false; } else field+=ch; }
-      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\\r'){} else if(ch=='\\n'){ pushF(); pushR(); } else field+=ch; }
+      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\r'){} else if(ch=='\n'){ pushF(); pushR(); } else field+=ch; }
     }
     pushF(); if(row.length) pushR();
     if(rows.length<2) return [];
@@ -199,8 +197,9 @@
     }
     return out;
   }
+
   function parseGviz(txt){
-    const json = JSON.parse(txt.replace(/^[^{]+/,'').replace(/;?\\s*$/,''));
+    const json = JSON.parse(txt.replace(/^[^{]+/,'').replace(/;?\s*$/,''));
     const cols = (json.table.cols||[]).map(c=>normalizeKey(c.label));
     const rows = json.table.rows || [];
     const out=[];
@@ -211,10 +210,39 @@
     }
     return out;
   }
+
+  // Only cache-bust HTTP(S); do not modify data: or blob:
   async function fetchText(url){
-    const u = new URL(url, location.href); u.searchParams.set('cb', Date.now());
-    const res = await fetch(u.toString(), {cache:'no-cache'}); if(!res.ok) throw new Error(res.status);
-    return res.text();
+    const u = new URL(url, location.href);
+    const proto = u.protocol;
+    if (proto === 'http:' || proto === 'https:') {
+      u.searchParams.set('cb', String(Date.now()));
+    }
+    const res = await fetch(u.toString(), { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const txt = await res.text();
+
+    // If we accidentally got HTML, surface a clear message
+    if (/^\s*</.test(txt)) {
+      throw new Error('Received HTML instead of CSV/JSON — check Publish to web / sharing.');
+    }
+    return txt;
+  }
+
+  // Accept both encoded and unencoded CSV links; rebuild extras if needed
+  function getCsvUrlFromParams(params){
+    let url = params.get('csv');
+    if (!url) return null;
+    // If user pasted unencoded CSV, gid/single/output got split into separate params.
+    if (url && !url.includes('?')) {
+      const extras = [];
+      ['gid','single','output'].forEach(k => {
+        const v = params.get(k);
+        if (v != null) extras.push(`${k}=${encodeURIComponent(v)}`);
+      });
+      if (extras.length) url += '?' + extras.join('&');
+    }
+    return url;
   }
 
   function mapRow(obj){
@@ -251,30 +279,29 @@
       const html = chipHTML({label:c, color:BRAND.aqua, glow:false, selected:(categorySel===c), button:true});
       return `<button type="button" class="cat" data-cat="${esc(c)}" style="all:unset">${html}</button>`;
     }).join('');
-    els.catChips.innerHTML = catEls;
+    document.getElementById('catChips').innerHTML = catEls;
 
     // Status chips
     const statuses = ['operational','limited','out','setup'];
     const statEls = statuses.map(k => {
       const meta = STATUS_META[k];
-      // Glow on filter chips is optional; keeping them static for clarity.
       const html = chipHTML({label:meta.label, color:meta.color, glow:false, selected:statusSel.has(k), button:true});
       return `<button type="button" class="stat" data-stat="${k}" style="all:unset">${html}</button>`;
     }).join('');
-    els.statChips.innerHTML = statEls;
+    document.getElementById('statChips').innerHTML = statEls;
 
     // Handlers
-    els.catChips.querySelectorAll('button.cat').forEach(btn => {
+    document.querySelectorAll('button.cat').forEach(btn => {
       btn.onclick = () => { categorySel = btn.getAttribute('data-cat'); renderAll(); };
     });
-    els.statChips.querySelectorAll('button.stat').forEach(btn => {
+    document.querySelectorAll('button.stat').forEach(btn => {
       btn.onclick = () => {
         const k = btn.getAttribute('data-stat');
         if (statusSel.has(k)) statusSel.delete(k); else statusSel.add(k);
         renderAll();
       };
     });
-    els.clearBtn.onclick = () => { categorySel='All'; statusSel.clear(); renderAll(); };
+    document.getElementById('clearBtn').onclick = () => { categorySel='All'; statusSel.clear(); renderAll(); };
   }
 
   function renderGrid(list){
@@ -340,19 +367,26 @@
   (async function load(){
     try{
       const params = new URLSearchParams(location.search);
-      const csv = params.get('csv');
+      const csvParam = getCsvUrlFromParams(params);
       const sheet = params.get('sheet');
       const gid = params.get('gid');
       const sheetName = params.get('sheetName');
 
       let rows = [];
-      if (csv){
-        rows = parseCSV(await fetchText(csv));
+      if (csvParam){
+        const txt = await fetchText(csvParam);
+        // Headers-only guard
+        const lines = txt.replace(/\r/g,'').split('\n').filter(Boolean);
+        if (lines.length <= 1) {
+          throw new Error('CSV has headers but no data rows — republish the correct tab/range.');
+        }
+        rows = parseCSV(txt);
       } else if (sheet && (gid || sheetName)){
         let url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheet)}/gviz/tq?tqx=out:json`;
         if (gid) url += `&gid=${encodeURIComponent(gid)}`;
         if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
-        rows = parseGviz(await fetchText(url));
+        const txt = await fetchText(url);
+        rows = parseGviz(txt);
       } else {
         els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">Pass <code>?sheet=…&gid=…</code> or <code>?csv=…</code> in the URL.</div></div>`;
         els.count.textContent = `Showing 0 of 0`;
@@ -363,7 +397,7 @@
       renderAll();
     }catch(err){
       console.error(err);
-      els.grid.innerHTML = `<div class="item"><div class="card pad" style="color:#B91C1C; border-left:4px solid var(--red)">Failed to load data. Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div></div>`;
+      els.grid.innerHTML = `<div class="item"><div class="card pad" style="border-left:6px solid var(--red)"><div class="error"><b>Failed to load data.</b> ${esc(err.message || '')} Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div></div></div>`;
       els.count.textContent = `Showing 0 of 0`;
     }
   })();
