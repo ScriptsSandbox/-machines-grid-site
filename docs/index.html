@@ -210,11 +210,12 @@
     return url;
   }
 
+  // ***** DATA MAPPING: show MODEL (prefer "Model" col; fallback to "Location") *****
   function mapRow(obj){
-    // strictly sheet fields
     const name = obj.name || obj['Name'] || '';
     const category = obj.category || obj['Category'] || '';
-    const location = obj.location || obj['Location'] || '';
+    // Prefer explicit Model column; otherwise reuse Location column for model text
+    const model = obj.model || obj['Model'] || obj.location || obj['Location'] || '';
     const statusTxt = obj.status || obj['Status'] || '';
     const hazardTxt = obj.hazard_class || obj['Hazard Class'] || '';
     const access = obj.access || obj['Access'] || '';
@@ -225,7 +226,7 @@
     const specs = obj.specs || obj['Specs'] || '';
 
     return {
-      name, category, location,
+      name, category, model,
       statusTxt, hazardTxt, access, accessChips,
       image, detail, description, specs,
       statusColor: statusColor(statusTxt),
@@ -304,7 +305,7 @@
             <div style="min-width:0">
               <div class="meta">${esc(t.category||'')}</div>
               <h3 class="line-clamp-1">${esc(t.name)}</h3>
-              <div class="meta">${esc(t.location||'')}</div>
+              <div class="meta">${esc(t.model||'')}</div>
             </div>
             <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end">
               ${statusChip}
