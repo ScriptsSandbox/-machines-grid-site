@@ -19,10 +19,9 @@
       --red:#EF4444;      /* out-of-service */
       --text:#0F172A;
       --edge:#E2E8F0;
-      --bg:#747678;
     }
     html,body{
-      margin:0; padding:0; background:var(--bg); color:var(--text);
+      margin:0; padding:0; background:#747678; color:var(--text);
       font:16px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
@@ -65,7 +64,7 @@
       .chip .dot.live, .chip .dot.live::after{ animation:none }
     }
 
-    /* DEFAULT Tool cards (your current layout) */
+    /* Tool cards */
     .tool{ display:flex; flex-direction:column; gap:8px; transition: box-shadow .2s ease }
     .tool:hover{ box-shadow:0 12px 18px rgba(0,0,0,.07) }
     .imgwrap{ overflow:hidden; border-radius:12px; height:160px; background:#e5e7eb }
@@ -81,247 +80,6 @@
     .masonry{ column-width: 320px; column-gap:16px }
     @media (max-width: 640px){ .masonry{ column-width: 100% } }
     .masonry .item{ break-inside: avoid; margin:0 0 16px }
-
-    /* PIER layout */
-    .masonry[data-layout="pier"]{ column-width: 420px; }
-    @media (max-width: 900px){ .masonry[data-layout="pier"]{ column-width: 100% } }
-
-    .pier-card{
-      border-radius:28px;
-      overflow:hidden;
-    }
-    .pier-hero{
-      background:#efefef;
-      padding:14px 14px 0 14px;
-    }
-    .pier-hero-frame{
-      border-radius:22px;
-      background:#dcdcdc;
-      padding:14px;
-      position:relative;
-      overflow:hidden;
-    }
-    .pier-hero-frame::before,
-    .pier-hero-frame::after{
-      content:"";
-      position:absolute;
-      top:12px; bottom:12px;
-      width:14px;
-      border-radius:14px;
-      background:rgba(255,255,255,.55);
-    }
-    .pier-hero-frame::before{ left:10px; }
-    .pier-hero-frame::after{ right:10px; }
-    .pier-hero-img{
-      height:220px;
-      border-radius:18px;
-      overflow:hidden;
-      background:#cbd5e1;
-    }
-    .pier-hero-img img{
-      width:100%; height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    .pier-body{
-      padding:16px 18px 18px 18px;
-    }
-    .pier-top{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      justify-content:space-between;
-      margin-top:12px;
-    }
-    .pier-tags{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-width:0;
-    }
-    .pier-tag{
-      display:inline-block;
-      align-self:flex-start;
-      background:#f3f4f6;
-      border:1px solid #e5e7eb;
-      border-radius:10px;
-      padding:8px 10px;
-      font-weight:700;
-      color:#111827;
-      max-width:100%;
-    }
-    .pier-tag.big{ font-size:1.25rem; line-height:1.1; }
-    .pier-tag.small{ font-size:1rem; font-weight:700; }
-
-    .pier-right{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:10px;
-      flex:0 0 auto;
-    }
-    .pier-status{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:9999px;
-      font-weight:700;
-      border:1px solid rgba(0,0,0,.08);
-      background:#fff;
-      white-space:nowrap;
-    }
-    .pier-status .dot{
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      background: currentColor;
-    }
-    .pier-chart{
-      width:190px;
-      height:120px;
-      border-radius:12px;
-      overflow:hidden;
-      background:#f1f5f9;
-      border:1px solid #e5e7eb;
-    }
-    .pier-chart img{ width:100%; height:100%; object-fit:cover; display:block; }
-
-    .pier-title{
-      font-size:1.75rem;
-      margin:14px 0 10px 0;
-      letter-spacing:.1px;
-    }
-
-    .pier-mid{
-      display:grid;
-      grid-template-columns: 1fr 220px;
-      gap:14px;
-      align-items:start;
-    }
-    @media (max-width: 520px){
-      .pier-mid{ grid-template-columns: 1fr; }
-      .pier-right{ align-items:flex-start; }
-      .pier-chart{ width:100%; }
-    }
-
-    .pier-section-title{
-      font-size:1.1rem;
-      font-weight:800;
-      margin:8px 0 8px 0;
-    }
-    .pier-range{
-      border-top:1px solid #e5e7eb;
-      padding-top:8px;
-    }
-    .pier-range-table{
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      overflow:hidden;
-      background:#fff;
-    }
-    .pier-range-row{
-      padding:10px 12px;
-      border-top:1px solid #e5e7eb;
-      font-weight:600;
-      text-align:center;
-    }
-    .pier-range-row:first-child{ border-top:none; }
-
-    .pier-aux{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .pier-aux-table{
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      overflow:hidden;
-      background:#f3f4f6;
-    }
-    .pier-aux-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      text-align:center;
-    }
-    .pier-aux-cell{
-      padding:12px 8px;
-      border-left:1px solid #e5e7eb;
-    }
-    .pier-aux-cell:first-child{ border-left:none; }
-    .pier-aux-h{
-      font-size:1.2rem;
-      font-weight:900;
-    }
-    .pier-aux-v{
-      font-size:2rem;
-      font-weight:900;
-      margin-top:8px;
-    }
-
-    .pier-dates{
-      display:flex;
-      gap:12px;
-      margin-top:14px;
-      flex-wrap:wrap;
-    }
-    .date-pill{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:12px 16px;
-      border-radius:9999px;
-      border:2px solid rgba(0,0,0,.06);
-      font-weight:900;
-      font-size:1.4rem;
-      min-width:160px;
-    }
-    .date-pill.green{
-      background: rgba(110,150,59,.18);
-      color:#111827;
-    }
-    .date-pill.red{
-      background: rgba(239,68,68,.22);
-      color:#111827;
-    }
-    .date-label{
-      font-size:.85rem;
-      font-weight:700;
-      color:#6b7280;
-      margin:0 0 6px 6px;
-    }
-    .date-wrap{ display:flex; flex-direction:column; }
-
-    .pier-link{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      margin-top:14px;
-      font-size:1.05rem;
-      font-weight:700;
-      color:#2563eb;
-      overflow:hidden;
-    }
-    .pier-link .icon{
-      width:26px; height:26px;
-      border-radius:9999px;
-      background:#e0f2fe;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#0369a1;
-      flex:0 0 auto;
-    }
-    .pier-link a{
-      color:inherit;
-      text-decoration:none;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-      display:block;
-      min-width:0;
-    }
   </style>
 </head>
 <body>
@@ -330,7 +88,7 @@
     <div class="card pad filters">
       <div class="row" style="align-items:flex-start">
         <div>
-          <h2 id="pageTitle">Explore Tools</h2>
+          <h2>Explore Tools</h2>
           <div id="count" class="muted" style="margin-top:4px; font-size:.95rem">Loading…</div>
         </div>
         <button id="clearBtn" class="chip btn">Clear</button>
@@ -347,7 +105,7 @@
     <div id="grid" class="masonry" aria-live="polite" style="margin-top:16px"></div>
 
     <footer style="margin-top:24px; font-size:.9rem; color:#E5E7EB">
-      © <span id="year"></span> SIO • Built for clarity and quick access
+      © <span id="year"></span> SIO • Sandbox Makerspace • Built for clarity and quick access
     </footer>
   </div>
 
@@ -362,8 +120,7 @@
     grid: document.getElementById('grid'),
     catChips: document.getElementById('catChips'),
     statChips: document.getElementById('statChips'),
-    clearBtn: document.getElementById('clearBtn'),
-    pageTitle: document.getElementById('pageTitle')
+    clearBtn: document.getElementById('clearBtn')
   };
   els.year.textContent = new Date().getFullYear();
 
@@ -374,47 +131,13 @@
   function uniq(a){ return [...new Set(a)]; }
   function sortStr(a,b){ return String(a).localeCompare(String(b)); }
 
-  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
-  function first(obj, keys){
-    for (const k of keys){
-      const nk = normalizeKey(k);
-      const v = obj[nk] ?? obj[k];
-      if (v != null && String(v).trim() !== '') return String(v).trim();
-    }
-    return '';
-  }
-  function splitLines(txt){
-    const t = String(txt||'').replace(/\r/g,'').trim();
-    if (!t) return [];
-    // split on newlines OR semicolons that look like list separators
-    const lines = t.includes('\n') ? t.split('\n') : t.split(';');
-    return lines.map(s=>s.trim()).filter(Boolean);
-  }
-  function collectPrefix(obj, prefix){
-    const p = normalizeKey(prefix);
-    return Object.keys(obj)
-      .filter(k => k.startsWith(p))
-      .sort((a,b)=> a.localeCompare(b))
-      .map(k => String(obj[k]||'').trim())
-      .filter(Boolean);
-  }
-  function shortUrl(u){
-    try{
-      const url = new URL(u);
-      const s = (url.host + url.pathname).replace(/\/$/,'');
-      return s.length > 48 ? (s.slice(0,46) + '…') : s;
-    }catch{
-      return u.length > 48 ? (u.slice(0,46) + '…') : u;
-    }
-  }
-
   // Status/hazard color only (labels come straight from sheet)
   function statusColor(s){
     const v=String(s||'').toLowerCase();
-    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return BRAND.red;
-    if (/(restricted|limited|degraded|partial)/.test(v)) return BRAND.orange;
-    if (/(setup|commission|install|deploy)/.test(v)) return BRAND.aqua;
-    return BRAND.green; // includes operational/ok/online
+    if (/(down|offline|out\s*of\s*service)/.test(v)) return BRAND.red;
+    if (/(restricted|limited)/.test(v)) return BRAND.orange;
+    if (/(setup|commission)/.test(v)) return BRAND.aqua;
+    return BRAND.green;
   }
   function hazardColor(h){
     const v=String(h||'').trim().toLowerCase();
@@ -432,33 +155,22 @@
   }
 
   // CSV / GViz helpers
+  function normalizeKey(k){ return String(k||'').trim().toLowerCase().replace(/\s+/g,'_'); }
   function parseCSV(text){
     const rows=[]; let i=0, field='', row=[], inQ=false;
     function pushF(){ row.push(field); field=''; }
     function pushR(){ rows.push(row); row=[]; }
     while(i<text.length){
-      const ch=text[i++];
-      if(inQ){
-        if(ch=='"'){
-          if(text[i]=='"'){field+='"'; i++;} else inQ=false;
-        } else field+=ch;
-      } else {
-        if(ch=='"') inQ=true;
-        else if(ch==',') pushF();
-        else if(ch=='\r'){}
-        else if(ch=='\n'){ pushF(); pushR(); }
-        else field+=ch;
-      }
+      const ch=text[i++]; if(inQ){ if(ch=='"'){ if(text[i]=='"'){field+='"'; i++;} else inQ=false; } else field+=ch; }
+      else { if(ch=='"') inQ=true; else if(ch==',') pushF(); else if(ch=='\r'){} else if(ch=='\n'){ pushF(); pushR(); } else field+=ch; }
     }
     pushF(); if(row.length) pushR();
     if(rows.length<2) return [];
     const headers = rows[0].map(normalizeKey);
     const out=[];
     for(let r=1;r<rows.length;r++){
-      const line=rows[r];
-      if(!line.some(v=>v && String(v).trim()!=='')) continue;
-      const obj={};
-      headers.forEach((k,idx)=> obj[k]=(line[idx]||'').toString());
+      const line=rows[r]; if(!line.some(v=>v && String(v).trim()!=='')) continue;
+      const obj={}; headers.forEach((k,idx)=> obj[k]=(line[idx]||'').toString());
       out.push(obj);
     }
     return out;
@@ -498,43 +210,34 @@
     return url;
   }
 
-  // Layout + title params
-  const params = new URLSearchParams(location.search);
-  const LAYOUT = (params.get('layout') || 'tools').toLowerCase(); // tools | pier
-  const TITLE = params.get('title') || (LAYOUT === 'pier' ? 'Pier Instrumentation' : 'Explore Tools');
-  document.title = TITLE;
-  els.pageTitle.textContent = TITLE;
-  els.grid.dataset.layout = LAYOUT;
-
-  // ***** DATA MAPPING (common fields for filters + linking) *****
+  // ***** DATA MAPPING: show MODEL (prefer "Model" col; fallback to "Location") *****
   function mapRow(obj){
-    const name = first(obj, ['name','title','instrument','station','asset']);
-    const category = first(obj, ['category','instrument_category','type','domain']);
-    const model = first(obj, ['model','location','site']);
-    const statusTxt = first(obj, ['status','operational_status','state']);
-    const hazardTxt = first(obj, ['hazard_class','hazard','hc']);
-    const access = first(obj, ['access']);
-    const accessChips = first(obj, ['access_chips']).split(/[;,]/).map(s=>s.trim()).filter(Boolean);
-
-    const image = first(obj, ['thumbnail_url','thumbnail','photo_url','photo','image_url','image']);
-    const detail = first(obj, ['detail_url','detail','link_url','url','data_url','link']);
-    const description = first(obj, ['description','notes']);
-    const specs = first(obj, ['specs','specifications','spec']);
+    const name = obj.name || obj['Name'] || '';
+    const category = obj.category || obj['Category'] || '';
+    // Prefer explicit Model column; otherwise reuse Location column for model text
+    const model = obj.model || obj['Model'] || obj.location || obj['Location'] || '';
+    const statusTxt = obj.status || obj['Status'] || '';
+    const hazardTxt = obj.hazard_class || obj['Hazard Class'] || '';
+    const access = obj.access || obj['Access'] || '';
+    const accessChips = (obj.access_chips || obj['Access Chips'] || '').split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+    const image = obj.thumbnail_url || obj['Thumbnail URL'] || '';
+    const detail = obj.detail_url || obj['Detail URL'] || '';
+    const description = obj.description || obj['Description'] || '';
+    const specs = obj.specs || obj['Specs'] || '';
 
     return {
       name, category, model,
       statusTxt, hazardTxt, access, accessChips,
       image, detail, description, specs,
       statusColor: statusColor(statusTxt),
-      hazardColor: hazardColor(hazardTxt),
-      _raw: obj
+      hazardColor: hazardColor(hazardTxt)
     };
   }
 
   // State
   let ALL_TOOLS = [];
   let categorySel = 'All';
-  const statusSel = new Set(); // values are normalized buckets
+  const statusSel = new Set(); // values are normalized for color, but we match against sheet text via contains
 
   function chipHTML({label, color, glow, selected, button}){
     const bg = withAlpha(color, 0.12), bd = withAlpha(color, 0.25);
@@ -553,7 +256,7 @@
     }).join('');
     els.catChips.innerHTML = catEls;
 
-    // Fixed status filter chips
+    // Fixed status filter chips (labels only; we filter by substring match)
     const STATUS_FILTERS = [
       {key:'operational', label:'Operational', color:BRAND.green},
       {key:'limited', label:'Limited', color:BRAND.orange},
@@ -567,4 +270,114 @@
     els.statChips.innerHTML = statEls;
 
     // Handlers
-    els.catCh
+    els.catChips.querySelectorAll('button.cat').forEach(btn => {
+      btn.onclick = () => { categorySel = btn.getAttribute('data-cat'); renderAll(); };
+    });
+    els.statChips.querySelectorAll('button.stat').forEach(btn => {
+      btn.onclick = () => {
+        const k = btn.getAttribute('data-stat');
+        if (statusSel.has(k)) statusSel.delete(k); else statusSel.add(k);
+        renderAll();
+      };
+    });
+    els.clearBtn.onclick = () => { categorySel='All'; statusSel.clear(); renderAll(); };
+  }
+
+  function renderGrid(list){
+    els.count.textContent = `Showing ${list.length} of ${ALL_TOOLS.length}`;
+    if (!list.length){
+      els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">No tools match your filters.</div></div>`;
+      return;
+    }
+    const cards = list.map(t => {
+      // Chips: labels are exactly what’s in the sheet
+      const statusChip = chipHTML({label:t.statusTxt, color:t.statusColor, glow:true});
+      const hazardChip = t.hazardTxt ? chipHTML({label:t.hazardTxt, color:t.hazardColor, glow:false}) : '';
+      const accessChip = t.access ? chipHTML({label:t.access, color:BRAND.aqua, glow:false}) : '';
+      const extraAccess = (t.accessChips||[]).map(c => chipHTML({label:c, color:BRAND.aqua, glow:false})).join('');
+
+      const specLines = linesFromSpecs(t.specs).map(line => `<div class="spec-line">${esc(line)}</div>`).join('');
+
+      const body = `
+        <article class="tool card pad" aria-label="${esc(t.name)}">
+          ${t.image ? `<div class="imgwrap"><img src="${esc(t.image)}" alt="${esc(t.name)} photo" loading="lazy"></div>` : `<div class="imgwrap"></div>`}
+          <div class="row" style="align-items:flex-start; gap:12px">
+            <div style="min-width:0">
+              <div class="meta">${esc(t.category||'')}</div>
+              <h3 class="line-clamp-1">${esc(t.name)}</h3>
+              <div class="meta">${esc(t.model||'')}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end">
+              ${statusChip}
+              ${hazardChip}
+            </div>
+          </div>
+          ${t.description ? `<div class="muted" style="margin-top:6px; white-space:pre-wrap">${esc(t.description)}</div>` : ''}
+          ${specLines ? `<div class="specs">${specLines}</div>` : ''}
+          ${(accessChip || extraAccess) ? `<div class="chips" style="margin-top:8px">${accessChip}${extraAccess}</div>` : ''}
+        </article>
+      `;
+
+      return `<div class="item">${ t.detail ? `<a class="cardlink" href="${esc(t.detail)}" target="_blank" rel="noopener">${body}</a>` : body }</div>`;
+    }).join('');
+    els.grid.innerHTML = cards;
+  }
+
+  function renderAll(){
+    renderFilters();
+    const list = ALL_TOOLS.filter(t => {
+      if (categorySel !== 'All' && t.category !== categorySel) return false;
+      if (statusSel.size){
+        const want = Array.from(statusSel);
+        const s = t.statusTxt.toLowerCase();
+        const match =
+          (want.includes('operational') && /operational/.test(s)) ||
+          (want.includes('limited') && /(restricted|limited)/.test(s)) ||
+          (want.includes('out') && /(down|offline|out\s*of\s*service)/.test(s)) ||
+          (want.includes('setup') && /(setup|commission)/.test(s));
+        if (!match) return false;
+      }
+      return true;
+    });
+    renderGrid(list);
+  }
+
+  // Load from ?csv= (preferred) or ?sheet=&gid=
+  (async function load(){
+    try{
+      const params = new URLSearchParams(location.search);
+      const csvParam = getCsvUrlFromParams(params);
+      const sheet = params.get('sheet');
+      const gid = params.get('gid');
+      const sheetName = params.get('sheetName');
+
+      let rows = [];
+      if (csvParam){
+        const txt = await fetchText(csvParam);
+        const lines = txt.replace(/\r/g,'').split('\n').filter(Boolean);
+        if (lines.length <= 1) throw new Error('CSV has headers but no data rows — republish the correct tab.');
+        rows = parseCSV(txt);
+      } else if (sheet && (gid || sheetName)){
+        let url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheet)}/gviz/tq?tqx=out:json`;
+        if (gid) url += `&gid=${encodeURIComponent(gid)}`;
+        if (sheetName) url += `&sheet=${encodeURIComponent(sheetName)}`;
+        const txt = await fetchText(url);
+        rows = parseGviz(txt);
+      } else {
+        els.grid.innerHTML = `<div class="item"><div class="card pad muted" style="text-align:center">Pass <code>?sheet=…&gid=…</code> or <code>?csv=…</code> in the URL.</div></div>`;
+        els.count.textContent = `Showing 0 of 0`;
+        return;
+      }
+
+      ALL_TOOLS = rows.map(mapRow);
+      renderAll();
+    }catch(err){
+      console.error(err);
+      els.grid.innerHTML = `<div class="item"><div class="card pad" style="border-left:6px solid var(--red)"><div class="error"><b>Failed to load data.</b> ${esc(err.message||'')} Ensure the tab is <b>Published to the web</b> and the URL params are correct.</div></div></div>`;
+      els.count.textContent = `Showing 0 of 0`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>
