@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pier Instrumentation</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#747678;
+      --card:#ffffff;
+      --edge:#E2E8F0;
+      --muted:#64748B;
+      --aqua:#00C6D7;
+      --green:#6E963B;
+      --orange:#F59E0B;
+      --red:#EF4444;
+    }
+    html,body{margin:0;padding:0;background:var(--bg);font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0F172A}
+    .wrap{max-width:1200px;margin:0 auto;padding:24px 16px 56px}
+
+    .top{
+      background:var(--card);
+      border:1px solid var(--edge);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 8px 14px rgba(0,0,0,.05);
+    }
+    .row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:1.5rem;letter-spacing:.2px}
+    .sub{margin-top:4px;color:var(--muted);font-size:.95rem}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:9999px;
+      border:1px solid rgba(0,0,0,.08);
+      background:#fff;color:#0F172A;
+      font-weight:700;font-size:.82rem;
+      cursor:pointer; user-select:none;
+    }
+    .chip[data-on="1"]{outline:3px solid rgba(0,198,215,.35);outline-offset:1px}
+    .dot{width:9px;height:9px;border-radius:50%;background:currentColor}
+
+    .masonry{column-width:420px;column-gap:16px;margin-top:16px}
+    @media (max-width: 900px){.masonry{column-width:100%}}
+    .item{break-inside:avoid;margin:0 0 16px}
+
+    /* --- Pier card layout --- */
+    .pier{
+      background:var(--card);
+      border:1px solid var(--edge);
+      border-radius:34px;
+      overflow:hidden;
+      box-shadow:0 10px 18px rgba(0,0,0,.06);
+    }
+    .hero{padding:14px 14px 0 14px;background:#F3F4F6}
+    .hero-frame{
+      border-radius:26px;
+      background:#D9D9D9;
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-frame::before,.hero-frame::after{
+      content:"";
+      position:absolute;top:14px;bottom:14px;width:14px;border-radius:14px;
+      background:rgba(255,255,255,.55);
+    }
+    .hero-frame::before{left:10px}
+    .hero-frame::after{right:10px}
+    .hero-img{
+      height:240px;border-radius:20px;overflow:hidden;background:#CBD5E1;
+    }
+    .hero-img img{width:100%;height:100%;object-fit:cover;display:block}
+
+    .body{padding:16px 18px 18px 18px}
+    .topline{
+      display:grid;
+      grid-template-columns: 1fr 210px;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 520px){
+      .topline{grid-template-columns:1fr}
+      .chart{width:100%}
+      .status{justify-self:start}
+    }
+
+    .tags{display:flex;flex-direction:column;gap:8px;min-width:0}
+    .tag{
+      display:inline-block;align-self:flex-start;
+      background:#F3F4F6;border:1px solid #E5E7EB;border-radius:10px;
+      padding:8px 10px;font-weight:900;color:#111827;max-width:100%;
+    }
+    .tag.big{font-size:1.25rem;line-height:1.1}
+    .tag.small{font-size:1rem}
+
+    .right{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+    .status{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:10px 14px;border-radius:9999px;
+      border:2px solid rgba(0,0,0,.06);
+      font-weight:900;background:#fff;white-space:nowrap;
+    }
+    .status .dot{width:10px;height:10px}
+    .chart{
+      width:190px;height:120px;border-radius:14px;overflow:hidden;
+      background:#F1F5F9;border:1px solid #E5E7EB;
+    }
+    .chart img{width:100%;height:100%;object-fit:cover;display:block}
+
+    .title{font-size:1.75rem;font-weight:900;margin:14px 0 10px 0;letter-spacing:.1px}
+
+    .mid{
+      display:grid;
+      grid-template-columns: 1fr 250px;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 640px){.mid{grid-template-columns:1fr}}
+
+    .section-title{font-size:1.1rem;font-weight:900;margin:8px 0}
+    .range-box{
+      border:1px solid #E5E7EB;border-radius:14px;overflow:hidden;background:#fff;
+    }
+    .range-row{
+      padding:10px 12px;text-align:center;font-weight:800;
+      border-top:1px solid #E5E7EB;
+    }
+    .range-row:first-child{border-top:none}
+
+    .aux-box{
+      border:1px solid #E5E7EB;border-radius:14px;overflow:hidden;background:#F3F4F6;
+    }
+    .aux-grid{display:grid;grid-template-columns:repeat(3,1fr);text-align:center}
+    .aux-cell{padding:12px 8px;border-left:1px solid #E5E7EB}
+    .aux-cell:first-child{border-left:none}
+    .aux-h{font-size:1.25rem;font-weight:900}
+    .aux-v{font-size:2rem;font-weight:900;margin-top:8px}
+
+    .dates{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+    .datewrap{display:flex;flex-direction:column;gap:6px}
+    .datelabel{font-size:.85rem;font-weight:900;color:#6B7280;margin-left:8px}
+    .datepill{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:12px 18px;border-radius:9999px;
+      border:2px solid rgba(0,0,0,.06);
+      font-weight:900;font-size:1.4rem;min-width:170px;
+    }
+    .datepill.green{background:rgba(110,150,59,.18)}
+    .datepill.red{background:rgba(239,68,68,.22)}
+
+    .linkrow{
+      display:flex;gap:10px;align-items:center;margin-top:14px;
+      font-size:1.05rem;font-weight:900;color:#2563EB;overflow:hidden;
+    }
+    .icon{
+      width:28px;height:28px;border-radius:9999px;
+      background:#E0F2FE;color:#0369A1;
+      display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    }
+    .linkrow a{
+      color:inherit;text-decoration:none;white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;display:block;min-width:0;
+    }
+
+    .notice{
+      margin-top:12px;color:#FEE2E2;
+      font-weight:700;font-size:.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="row">
+        <div>
+          <h1 id="pageTitle">Pier Instrumentation</h1>
+          <div id="count" class="sub">Loading…</div>
+        </div>
+        <button id="clear" class="chip" type="button">Clear</button>
+      </div>
+
+      <div class="sub" style="margin-top:10px">Categories</div>
+      <div id="cats" class="chips"></div>
+
+      <div class="sub" style="margin-top:10px">Status</div>
+      <div id="stats" class="chips"></div>
+
+      <div id="err" class="notice" style="display:none"></div>
+    </div>
+
+    <div id="grid" class="masonry"></div>
+  </div>
+
+<script>
+(() => {
+  const DEFAULT_CSV =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPfuUmpWyeMlzZZrwbGRBYjDdo9gKL1HN9LDfe-OVAfT8xrHHCtRG-q_L4kBSCtUcMkFIQG3J_ydqx/pub?gid=0&single=true&output=csv";
+
+  const $ = (id) => document.getElementById(id);
+  const els = { title:$("pageTitle"), count:$("count"), cats:$("cats"), stats:$("stats"), grid:$("grid"), clear:$("clear"), err:$("err") };
+
+  const params = new URLSearchParams(location.search);
+  const title = params.get("title") || "Pier Instrumentation";
+  document.title = title; els.title.textContent = title;
+
+  const csvParam = params.get("csv");
+  const csvUrl = csvParam ? decodeURIComponent(csvParam) : DEFAULT_CSV;
+
+  const BRAND = { aqua:"#00C6D7", green:"#6E963B", orange:"#F59E0B", red:"#EF4444" };
+
+  const esc = (s) => (s ?? "").toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm = (s) => (s ?? "").toString().trim().toLowerCase().replace(/\s+/g,"_");
+
+  function first(obj, keys){
+    for (const k of keys){
+      const nk = norm(k);
+      if (obj[nk] != null && String(obj[nk]).trim() !== "") return String(obj[nk]).trim();
+    }
+    return "";
+  }
+
+  function statusColor(s){
+    const v = String(s||"").toLowerCase();
+    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return BRAND.red;
+    if (/(restricted|limited|degraded|partial)/.test(v)) return BRAND.orange;
+    if (/(setup|commission|install|deploy)/.test(v)) return BRAND.aqua;
+    return BRAND.green;
+  }
+
+  function parseCSV(text){
+    const rows=[]; let i=0, field="", row=[], inQ=false;
+    const pushF=()=>{ row.push(field); field=""; };
+    const pushR=()=>{ rows.push(row); row=[]; };
+    while(i<text.length){
+      const ch=text[i++];
+      if(inQ){
+        if(ch === '"'){
+          if(text[i] === '"'){ field += '"'; i++; } else inQ=false;
+        } else field += ch;
+      } else {
+        if(ch === '"') inQ=true;
+        else if(ch === ',') pushF();
+        else if(ch === '\r') {}
+        else if(ch === '\n'){ pushF(); pushR(); }
+        else field += ch;
+      }
+    }
+    pushF(); if(row.length) pushR();
+    if(rows.length < 2) return [];
+    const headers = rows[0].map(norm);
+    return rows.slice(1)
+      .filter(r => r.some(v => String(v||"").trim() !== ""))
+      .map(r => {
+        const obj={};
+        headers.forEach((h,idx)=> obj[h] = (r[idx] ?? "").toString());
+        return obj;
+      });
+  }
+
+  async function fetchText(url){
+    const u = new URL(url, location.href);
+    if (u.protocol === "http:" || u.protocol === "https:") u.searchParams.set("cb", String(Date.now()));
+    const res = await fetch(u.toString(), { cache:"no-cache" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const txt = await res.text();
+    if (/^\s*</.test(txt)) throw new Error("Got HTML back (not CSV). Make sure the sheet is Published to web as CSV.");
+    return txt;
+  }
+
+  function splitLines(s){
+    const t = String(s||"").replace(/\r/g,"").trim();
+    if(!t) return [];
+    return t.includes("\n") ? t.split("\n").map(x=>x.trim()).filter(Boolean)
+                           : t.split(";").map(x=>x.trim()).filter(Boolean);
+  }
+
+  // --- Mapping (flexible, so Ryan can rename columns later) ---
+  function mapRow(r){
+    const category = first(r, ["category","domain","type"]);
+    const subtype  = first(r, ["subtype","measurement","what_it_measures","parameter","instrument"]);
+    const title    = first(r, ["title","name","station","location","site"]);
+    const status   = first(r, ["status","operational_status","state"]);
+    const photo    = first(r, ["photo","image","image_url","thumbnail","thumbnail_url"]);
+    const chart    = first(r, ["chart","chart_url","plot","plot_url","sparkline","sparkline_url"]);
+    const link     = first(r, ["link","url","data_url","ndbc_url","details","detail_url"]);
+
+    // sensing range: allow either a multi-line cell, or range_1/range_2/range_3
+    const rangeCell = first(r, ["sensing_range","range","ranges"]);
+    const rangeParts = splitLines(rangeCell);
+    const rangeCols = Object.keys(r).filter(k => k.startsWith("range_")).sort().map(k => String(r[k]||"").trim()).filter(Boolean);
+    const sensingRange = [...rangeParts, ...rangeCols].filter(Boolean).slice(0,6);
+
+    // aux table: try common pier-ish fields
+    const num  = first(r, ["num","station_num","station_number"]);
+    const ltr  = first(r, ["ltr","station_ltr","station_letter"]);
+    const mllw = first(r, ["mllw","depth_mllw","elev_mllw"]);
+
+    // dates
+    const installed = first(r, ["installed","install_date","start_date","deployed"]);
+    const due       = first(r, ["cal_due","due_date","end_date","retire_date","next_cal"]);
+
+    return {
+      category, subtype, title, status, photo, chart, link,
+      sensingRange,
+      aux: { num, ltr, mllw },
+      dates: { installed, due },
+      _raw: r
+    };
+  }
+
+  // --- Filters ---
+  let all = [];
+  let catSel = "All";
+  const statSel = new Set(); // "operational" | "limited" | "out" | "setup"
+
+  function bucketStatus(s){
+    const v = String(s||"").toLowerCase();
+    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return "out";
+    if (/(restricted|limited|degraded|partial)/.test(v)) return "limited";
+    if (/(setup|commission|install|deploy)/.test(v)) return "setup";
+    return "operational";
+  }
+
+  function chip(label, color, on, dot){
+    return `
+      <div class="chip" data-on="${on?1:0}" style="color:${esc(color)}">
+        ${dot ? `<span class="dot"></span>` : ``}
+        <span>${esc(label)}</span>
+      </div>`;
+  }
+
+  function renderFilters(){
+    const cats = ["All", ...Array.from(new Set(all.map(x=>x.category).filter(Boolean))).sort((a,b)=>a.localeCompare(b))];
+    els.cats.innerHTML = cats.map(c => chip(c, BRAND.aqua, catSel===c, false)).join("");
+    [...els.cats.children].forEach((el, idx) => {
+      el.addEventListener("click", () => { catSel = cats[idx]; render(); });
+    });
+
+    const defs = [
+      {k:"operational", label:"Operational", color:BRAND.green},
+      {k:"limited", label:"Limited", color:BRAND.orange},
+      {k:"out", label:"Out of Service", color:BRAND.red},
+      {k:"setup", label:"In Setup", color:BRAND.aqua},
+    ];
+    els.stats.innerHTML = defs.map(d => chip(d.label, d.color, statSel.has(d.k), true)).join("");
+    [...els.stats.children].forEach((el, idx) => {
+      el.addEventListener("click", () => {
+        const k = defs[idx].k;
+        if (statSel.has(k)) statSel.delete(k); else statSel.add(k);
+        render();
+      });
+    });
+  }
+
+  function render(){
+    const filtered = all.filter(x => {
+      if (catSel !== "All" && x.category !== catSel) return false;
+      if (statSel.size){
+        const b = bucketStatus(x.status);
+        if (!statSel.has(b)) return false;
+      }
+      return true;
+    });
+
+    els.count.textContent = `${filtered.length} item${filtered.length===1?"":"s"} • Source: CSV`;
+    els.grid.innerHTML = filtered.map(cardHTML).join("");
+  }
+
+  function cardHTML(x){
+    const statusCol = statusColor(x.status);
+    const statusBg = `rgba(${hex(statusCol).join(",")},0.12)`;
+    const statusBd = `rgba(${hex(statusCol).join(",")},0.22)`;
+
+    const hasChart = !!x.chart;
+    const hasAux = (x.aux.num || x.aux.ltr || x.aux.mllw);
+    const hasRange = x.sensingRange && x.sensingRange.length;
+
+    const leftDate = x.dates.installed || "";
+    const rightDate = x.dates.due || "";
+
+    const linkLabel = x.link ? shorten(x.link) : "";
+
+    const inner = `
+      <div class="pier">
+        <div class="hero">
+          <div class="hero-frame">
+            <div class="hero-img">
+              ${x.photo ? `<img src="${esc(x.photo)}" alt="">` : ``}
+            </div>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="topline">
+            <div class="tags">
+              ${x.category ? `<div class="tag big">${esc(x.category)}</div>` : ``}
+              ${x.subtype ? `<div class="tag small">${esc(x.subtype)}</div>` : ``}
+            </div>
+
+            <div class="right">
+              <div class="status" style="color:${esc(statusCol)};background:${statusBg};border-color:${statusBd}">
+                <span class="dot"></span>
+                <span>${esc(x.status || "Operational")}</span>
+              </div>
+
+              ${hasChart ? `
+                <div class="chart">
+                  <img src="${esc(x.chart)}" alt="">
+                </div>` : ``}
+            </div>
+          </div>
+
+          ${x.title ? `<div class="title">${esc(x.title)}</div>` : ``}
+
+          <div class="mid">
+            <div>
+              ${hasRange ? `<div class="section-title">Sensing Range</div>
+                <div class="range-box">
+                  ${x.sensingRange.slice(0,4).map(line => `<div class="range-row">${esc(line)}</div>`).join("")}
+                </div>` : ``}
+            </div>
+
+            <div>
+              ${hasAux ? `
+                <div class="aux-box">
+                  <div class="aux-grid">
+                    <div class="aux-cell">
+                      <div class="aux-h">Num</div>
+                      <div class="aux-v">${esc(x.aux.num || "—")}</div>
+                    </div>
+                    <div class="aux-cell">
+                      <div class="aux-h">Ltr</div>
+                      <div class="aux-v">${esc(x.aux.ltr || "—")}</div>
+                    </div>
+                    <div class="aux-cell">
+                      <div class="aux-h">MLLW</div>
+                      <div class="aux-v">${esc(x.aux.mllw || "—")}</div>
+                    </div>
+                  </div>
+                </div>` : ``}
+            </div>
+          </div>
+
+          ${(leftDate || rightDate) ? `
+            <div class="dates">
+              ${leftDate ? `
+                <div class="datewrap">
+                  <div class="datelabel">Installed</div>
+                  <div class="datepill green">${esc(leftDate)}</div>
+                </div>` : ``}
+              ${rightDate ? `
+                <div class="datewrap">
+                  <div class="datelabel">Cal Due</div>
+                  <div class="datepill red">${esc(rightDate)}</div>
+                </div>` : ``}
+            </div>` : ``}
+
+          ${x.link ? `
+            <div class="linkrow">
+              <div class="icon">🌐</div>
+              <a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(linkLabel)}</a>
+            </div>` : ``}
+        </div>
+      </div>
+    `;
+
+    return `<div class="item">${x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${inner}</a>` : inner}</div>`;
+  }
+
+  function shorten(u){
+    try{
+      const url = new URL(u);
+      const s = (url.host + url.pathname).replace(/\/$/,"");
+      return s.length > 44 ? s.slice(0,42) + "…" : s;
+    }catch{
+      return u.length > 44 ? u.slice(0,42) + "…" : u;
+    }
+  }
+
+  function hex(h){
+    const x = h.replace("#","").trim();
+    const n = parseInt(x,16);
+    return [(n>>16)&255,(n>>8)&255,n&255];
+  }
+
+  els.clear.addEventListener("click", () => {
+    catSel = "All";
+    statSel.clear();
+    renderFilters();
+    render();
+  });
+
+  (async () => {
+    try{
+      const txt = await fetchText(csvUrl);
+      const raw = parseCSV(txt);
+      all = raw.map(mapRow);
+
+      // Basic “must-have” sanity: if everything is blank, show a helpful message
+      const anyTitle = all.some(x => x.title || x.category || x.photo);
+      if (!anyTitle){
+        throw new Error("Loaded CSV, but none of the expected columns matched. (Try columns like: Category, Subtype, Title/Name, Status, Photo, Chart, Sensing Range, Num/Ltr/MLLW, Install Date, Cal Due, Link.)");
+      }
+
+      renderFilters();
+      render();
+    }catch(e){
+      els.err.style.display = "block";
+      els.err.textContent = `Couldn’t load data: ${e.message}`;
+      els.count.textContent = "0 items";
+    }
+  })();
+})();
+</script>
+</body>
+</html>
