@@ -20,7 +20,11 @@
       --orange:#F59E0B;
       --red:#EF4444;
     }
-    html,body{margin:0;padding:0;background:var(--bg);font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0F172A}
+    html,body{
+      margin:0;padding:0;background:var(--bg);
+      font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:#0F172A;
+    }
     .wrap{max-width:1200px;margin:0 auto;padding:24px 16px 56px}
 
     .top{
@@ -38,9 +42,9 @@
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:8px 12px;border-radius:9999px;
-      border:1px solid rgba(0,0,0,.08);
+      border:1px solid rgba(0,0,0,.10);
       background:#fff;color:#0F172A;
-      font-weight:700;font-size:.82rem;
+      font-weight:800;font-size:.82rem;
       cursor:pointer; user-select:none;
     }
     .chip[data-on="1"]{outline:3px solid rgba(0,198,215,.35);outline-offset:1px}
@@ -75,6 +79,7 @@
     .hero-frame::after{right:10px}
     .hero-img{
       height:240px;border-radius:20px;overflow:hidden;background:#CBD5E1;
+      display:flex;align-items:center;justify-content:center;
     }
     .hero-img img{width:100%;height:100%;object-fit:cover;display:block}
 
@@ -87,7 +92,6 @@
     }
     @media (max-width: 520px){
       .topline{grid-template-columns:1fr}
-      .chart{width:100%}
       .status{justify-self:start}
     }
 
@@ -108,11 +112,6 @@
       font-weight:900;background:#fff;white-space:nowrap;
     }
     .status .dot{width:10px;height:10px}
-    .chart{
-      width:190px;height:120px;border-radius:14px;overflow:hidden;
-      background:#F1F5F9;border:1px solid #E5E7EB;
-    }
-    .chart img{width:100%;height:100%;object-fit:cover;display:block}
 
     .title{font-size:1.75rem;font-weight:900;margin:14px 0 10px 0;letter-spacing:.1px}
 
@@ -131,6 +130,7 @@
     .range-row{
       padding:10px 12px;text-align:center;font-weight:800;
       border-top:1px solid #E5E7EB;
+      white-space:pre-wrap;
     }
     .range-row:first-child{border-top:none}
 
@@ -171,7 +171,7 @@
 
     .notice{
       margin-top:12px;color:#FEE2E2;
-      font-weight:700;font-size:.95rem;
+      font-weight:800;font-size:.95rem;
     }
   </style>
 </head>
@@ -200,6 +200,7 @@
 
 <script>
 (() => {
+  // If you don't pass ?csv=..., this default is used.
   const DEFAULT_CSV =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPfuUmpWyeMlzZZrwbGRBYjDdo9gKL1HN9LDfe-OVAfT8xrHHCtRG-q_L4kBSCtUcMkFIQG3J_ydqx/pub?gid=0&single=true&output=csv";
 
@@ -207,27 +208,21 @@
   const els = { title:$("pageTitle"), count:$("count"), cats:$("cats"), stats:$("stats"), grid:$("grid"), clear:$("clear"), err:$("err") };
 
   const params = new URLSearchParams(location.search);
-  const title = params.get("title") || "Pier Instrumentation";
-  document.title = title; els.title.textContent = title;
 
+  const pageTitle = params.get("title") || "Pier Instrumentation";
+  document.title = pageTitle;
+  els.title.textContent = pageTitle;
+
+  // ---- CSV URL handling (robust to encoded or unencoded links) ----
   const csvParam = params.get("csv");
-
-  // Start with either the provided csv=... or the default
   let csvUrl = csvParam ? decodeURIComponent(csvParam) : DEFAULT_CSV;
-  
-  // If the user pasted an *unencoded* Google CSV URL, its "&gid=&single=&output="
-  // got split into separate query params for pier.html.
-  // Re-attach them if present.
-  for (const k of ["gid", "single", "output"]) {
+
+  // If an unencoded CSV link got split into gid/single/output, stitch it back in.
+  for (const k of ["gid","single","output"]) {
     const v = params.get(k);
-    if (v != null && v !== "" && !new RegExp(`[?&]${k}=`).test(csvUrl)) {
+    if (v && !new RegExp(`[?&]${k}=`).test(csvUrl)) {
       csvUrl += (csvUrl.includes("?") ? "&" : "?") + `${k}=${encodeURIComponent(v)}`;
     }
-  }
-  
-  // Optional: normalize to ensure output=csv (helps avoid HTML responses)
-  if (/docs\.google\.com\/spreadsheets\//.test(csvUrl) && !/[?&]output=csv\b/.test(csvUrl)) {
-    csvUrl += (csvUrl.includes("?") ? "&" : "?") + "output=csv";
   }
 
   const BRAND = { aqua:"#00C6D7", green:"#6E963B", orange:"#F59E0B", red:"#EF4444" };
@@ -246,9 +241,17 @@
   function statusColor(s){
     const v = String(s||"").toLowerCase();
     if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return BRAND.red;
-    if (/(restricted|limited|degraded|partial)/.test(v)) return BRAND.orange;
+    if (/(unauthorized|no\s*access|restricted|limited|degraded|partial)/.test(v)) return BRAND.orange;
     if (/(setup|commission|install|deploy)/.test(v)) return BRAND.aqua;
     return BRAND.green;
+  }
+
+  function bucketStatus(s){
+    const v = String(s||"").toLowerCase();
+    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return "out";
+    if (/(unauthorized|no\s*access|restricted|limited|degraded|partial)/.test(v)) return "limited";
+    if (/(setup|commission|install|deploy)/.test(v)) return "setup";
+    return "operational";
   }
 
   function parseCSV(text){
@@ -287,44 +290,70 @@
     const res = await fetch(u.toString(), { cache:"no-cache" });
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const txt = await res.text();
-    if (/^\s*</.test(txt)) throw new Error("Got HTML back (not CSV). Make sure the sheet is Published to web as CSV.");
+    if (/^\s*</.test(txt)) {
+      throw new Error("Got HTML back (not CSV). Make sure the sheet is Published to web as CSV (or URL-encode the csv= link).");
+    }
     return txt;
   }
 
   function splitLines(s){
     const t = String(s||"").replace(/\r/g,"").trim();
     if(!t) return [];
-    return t.includes("\n") ? t.split("\n").map(x=>x.trim()).filter(Boolean)
-                           : t.split(";").map(x=>x.trim()).filter(Boolean);
+    return t.includes("\n")
+      ? t.split("\n").map(x=>x.trim()).filter(Boolean)
+      : t.split(";").map(x=>x.trim()).filter(Boolean);
   }
 
-  // --- Mapping (flexible, so Ryan can rename columns later) ---
+  function looksLikeUrl(s){
+    return /^https?:\/\//i.test(String(s || "").trim());
+  }
+
+  // Convert drive.google.com links into something <img> can render.
+  function normalizeDriveUrl(u){
+    const s = String(u || "").trim();
+    if (!looksLikeUrl(s)) return "";
+
+    if (s.includes("drive.google.com")) {
+      let id = "";
+      const m1 = s.match(/\/file\/d\/([^/]+)/);
+      if (m1) id = m1[1];
+      const m2 = s.match(/[?&]id=([^&]+)/);
+      if (!id && m2) id = m2[1];
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+    return s;
+  }
+
+  // ---- Mapping to your actual CSV headers ----
   function mapRow(r){
-    const category = first(r, ["category","domain","type"]);
-    const subtype  = first(r, ["subtype","measurement","what_it_measures","parameter","instrument"]);
-    const title    = first(r, ["title","name","station","location","site"]);
-    const status   = first(r, ["status","operational_status","state"]);
-    const photo    = first(r, ["photo","image","image_url","thumbnail","thumbnail_url"]);
-    const chart    = first(r, ["chart","chart_url","plot","plot_url","sparkline","sparkline_url"]);
-    const link     = first(r, ["link","url","data_url","ndbc_url","details","detail_url"]);
+    const category = first(r, ["Sensor Class"]);
+    const subtype  = first(r, ["Data Collected", "Data Collected "]); // tolerates trailing space
+    const title    = first(r, ["Station"]) || first(r, ["PI Name or number"]);
 
-    // sensing range: allow either a multi-line cell, or range_1/range_2/range_3
-    const rangeCell = first(r, ["sensing_range","range","ranges"]);
-    const rangeParts = splitLines(rangeCell);
-    const rangeCols = Object.keys(r).filter(k => k.startsWith("range_")).sort().map(k => String(r[k]||"").trim()).filter(Boolean);
-    const sensingRange = [...rangeParts, ...rangeCols].filter(Boolean).slice(0,6);
+    const status   = first(r, ["Status"]);
 
-    // aux table: try common pier-ish fields
-    const num  = first(r, ["num","station_num","station_number"]);
-    const ltr  = first(r, ["ltr","station_ltr","station_letter"]);
-    const mllw = first(r, ["mllw","depth_mllw","elev_mllw"]);
+    // Image is now a real URL in the new CSV
+    const photo    = normalizeDriveUrl(first(r, ["Image", "Image URL"]));
 
-    // dates
-    const installed = first(r, ["installed","install_date","start_date","deployed"]);
-    const due       = first(r, ["cal_due","due_date","end_date","retire_date","next_cal"]);
+    // URL for Data sometimes exports as "Link" instead of the raw URL
+    const dataUrlRaw = first(r, ["URL for Data"]);
+    const piUrlRaw   = first(r, ["URL for PI"]);
+    const link = looksLikeUrl(dataUrlRaw) ? dataUrlRaw.trim()
+              : looksLikeUrl(piUrlRaw)   ? piUrlRaw.trim()
+              : "";
+
+    const sensingRange = splitLines(first(r, ["Sensing Range"])).slice(0, 6);
+
+    const num  = first(r, ["Bent No.", "Bent No. "]);
+    const ltr  = first(r, ["Bent Letter"]);
+    const mllw = first(r, ["MLLW (m)"]);
+
+    const installed = first(r, ["Installed", "Installed "]);
+    const due       = first(r, ["Termination"]);
 
     return {
-      category, subtype, title, status, photo, chart, link,
+      category, subtype, title, status,
+      photo, link,
       sensingRange,
       aux: { num, ltr, mllw },
       dates: { installed, due },
@@ -332,18 +361,10 @@
     };
   }
 
-  // --- Filters ---
+  // ---- Filters ----
   let all = [];
   let catSel = "All";
-  const statSel = new Set(); // "operational" | "limited" | "out" | "setup"
-
-  function bucketStatus(s){
-    const v = String(s||"").toLowerCase();
-    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return "out";
-    if (/(restricted|limited|degraded|partial)/.test(v)) return "limited";
-    if (/(setup|commission|install|deploy)/.test(v)) return "setup";
-    return "operational";
-  }
+  const statSel = new Set(); // operational | limited | out | setup
 
   function chip(label, color, on, dot){
     return `
@@ -391,16 +412,16 @@
   }
 
   function cardHTML(x){
-    const statusCol = statusColor(x.status);
-    const statusBg = `rgba(${hex(statusCol).join(",")},0.12)`;
-    const statusBd = `rgba(${hex(statusCol).join(",")},0.22)`;
+    const col = statusColor(x.status);
+    const rgb = hexToRgb(col);
+    const bg = `rgba(${rgb.r},${rgb.g},${rgb.b},0.12)`;
+    const bd = `rgba(${rgb.r},${rgb.g},${rgb.b},0.22)`;
 
-    const hasChart = !!x.chart;
-    const hasAux = (x.aux.num || x.aux.ltr || x.aux.mllw);
     const hasRange = x.sensingRange && x.sensingRange.length;
+    const hasAux = (x.aux.num || x.aux.ltr || x.aux.mllw);
 
-    const leftDate = x.dates.installed || "";
-    const rightDate = x.dates.due || "";
+    const installed = x.dates.installed || "";
+    const due = x.dates.due || "";
 
     const linkLabel = x.link ? shorten(x.link) : "";
 
@@ -409,7 +430,7 @@
         <div class="hero">
           <div class="hero-frame">
             <div class="hero-img">
-              ${x.photo ? `<img src="${esc(x.photo)}" alt="">` : ``}
+              ${x.photo ? `<img src="${esc(x.photo)}" alt="" onerror="this.remove()">` : ``}
             </div>
           </div>
         </div>
@@ -422,15 +443,10 @@
             </div>
 
             <div class="right">
-              <div class="status" style="color:${esc(statusCol)};background:${statusBg};border-color:${statusBd}">
+              <div class="status" style="color:${esc(col)};background:${bg};border-color:${bd}">
                 <span class="dot"></span>
                 <span>${esc(x.status || "Operational")}</span>
               </div>
-
-              ${hasChart ? `
-                <div class="chart">
-                  <img src="${esc(x.chart)}" alt="">
-                </div>` : ``}
             </div>
           </div>
 
@@ -438,7 +454,8 @@
 
           <div class="mid">
             <div>
-              ${hasRange ? `<div class="section-title">Sensing Range</div>
+              ${hasRange ? `
+                <div class="section-title">Sensing Range</div>
                 <div class="range-box">
                   ${x.sensingRange.slice(0,4).map(line => `<div class="range-row">${esc(line)}</div>`).join("")}
                 </div>` : ``}
@@ -465,17 +482,17 @@
             </div>
           </div>
 
-          ${(leftDate || rightDate) ? `
+          ${(installed || due) ? `
             <div class="dates">
-              ${leftDate ? `
+              ${installed ? `
                 <div class="datewrap">
                   <div class="datelabel">Installed</div>
-                  <div class="datepill green">${esc(leftDate)}</div>
+                  <div class="datepill green">${esc(installed)}</div>
                 </div>` : ``}
-              ${rightDate ? `
+              ${due ? `
                 <div class="datewrap">
-                  <div class="datelabel">Cal Due</div>
-                  <div class="datepill red">${esc(rightDate)}</div>
+                  <div class="datelabel">Termination</div>
+                  <div class="datepill red">${esc(due)}</div>
                 </div>` : ``}
             </div>` : ``}
 
@@ -488,6 +505,7 @@
       </div>
     `;
 
+    // If we have a link, make the whole card clickable
     return `<div class="item">${x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${inner}</a>` : inner}</div>`;
   }
 
@@ -501,10 +519,10 @@
     }
   }
 
-  function hex(h){
-    const x = h.replace("#","").trim();
-    const n = parseInt(x,16);
-    return [(n>>16)&255,(n>>8)&255,n&255];
+  function hexToRgb(hex){
+    const h = hex.replace("#","").trim();
+    const n = parseInt(h,16);
+    return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
   }
 
   els.clear.addEventListener("click", () => {
@@ -519,12 +537,6 @@
       const txt = await fetchText(csvUrl);
       const raw = parseCSV(txt);
       all = raw.map(mapRow);
-
-      // Basic “must-have” sanity: if everything is blank, show a helpful message
-      const anyTitle = all.some(x => x.title || x.category || x.photo);
-      if (!anyTitle){
-        throw new Error("Loaded CSV, but none of the expected columns matched. (Try columns like: Category, Subtype, Title/Name, Status, Photo, Chart, Sensing Range, Num/Ltr/MLLW, Install Date, Cal Due, Link.)");
-      }
 
       renderFilters();
       render();
