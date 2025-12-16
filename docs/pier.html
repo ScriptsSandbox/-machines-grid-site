@@ -211,7 +211,24 @@
   document.title = title; els.title.textContent = title;
 
   const csvParam = params.get("csv");
-  const csvUrl = csvParam ? decodeURIComponent(csvParam) : DEFAULT_CSV;
+
+  // Start with either the provided csv=... or the default
+  let csvUrl = csvParam ? decodeURIComponent(csvParam) : DEFAULT_CSV;
+  
+  // If the user pasted an *unencoded* Google CSV URL, its "&gid=&single=&output="
+  // got split into separate query params for pier.html.
+  // Re-attach them if present.
+  for (const k of ["gid", "single", "output"]) {
+    const v = params.get(k);
+    if (v != null && v !== "" && !new RegExp(`[?&]${k}=`).test(csvUrl)) {
+      csvUrl += (csvUrl.includes("?") ? "&" : "?") + `${k}=${encodeURIComponent(v)}`;
+    }
+  }
+  
+  // Optional: normalize to ensure output=csv (helps avoid HTML responses)
+  if (/docs\.google\.com\/spreadsheets\//.test(csvUrl) && !/[?&]output=csv\b/.test(csvUrl)) {
+    csvUrl += (csvUrl.includes("?") ? "&" : "?") + "output=csv";
+  }
 
   const BRAND = { aqua:"#00C6D7", green:"#6E963B", orange:"#F59E0B", red:"#EF4444" };
 
