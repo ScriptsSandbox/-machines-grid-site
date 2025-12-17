@@ -397,7 +397,18 @@
     162.38722,166.3222,170.25718,174.19216,178.12715,182.06213,185.99711,189.93209,193.86708,197.80206,
     201.73704
   ];
-  const Y_BY_ROW = {A:9.7381561, B:13.059, C:16.30532, D:19.551639, E:22.872483};
+  // Row Y positions (tuned for visual alignment on pierBACKGROUND.svg)
+  // Note: smaller Y = higher on the image.
+  const Y_A = 9.20;          // moved up slightly (A circle aligns with pier edge)
+  const Y_E = 22.872483;     // keep E as-is for now
+  const Y_C = (Y_A + Y_E) / 2; // C always centered between A and E
+  
+  // Move B and D outward (away from the middle) on the narrow end
+  // (smaller B = up; larger D = down)
+  const Y_B = 12.30;
+  const Y_D = 20.30;
+  
+  const Y_BY_ROW = { A: Y_A, B: Y_B, C: Y_C, D: Y_D, E: Y_E };
 
   function xForBent(b){
     const bent = Number(b);
