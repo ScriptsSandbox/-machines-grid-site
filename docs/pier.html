@@ -7,7 +7,7 @@
 
   <style>
     /* =========================
-       Local Fonts
+       Local Fonts (GitHub Pages)
        ========================= */
 
     @font-face {
@@ -35,7 +35,7 @@
     }
 
     /* =========================
-       Variables & Base
+       Theme (Scripps-ish)
        ========================= */
 
     :root{
@@ -47,28 +47,16 @@
       --border:rgba(255,255,255,.14);
       --accent:#00b3c7;
       --radius:26px;
+
+      --good:#8bd17c;
+      --warn:#ffb020;
+      --bad:#ff6b6b;
     }
 
-    html,body{
-      margin:0;
-      padding:0;
-      background:var(--bg);
-      color:var(--ink);
-    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);}
+    body{font:16px/1.45 "Brix Sans", system-ui, -apple-system, sans-serif;}
 
-    body{
-      font:16px/1.45 "Brix Sans", system-ui, -apple-system, sans-serif;
-    }
-
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:26px 18px 64px;
-    }
-
-    /* =========================
-       Page Title
-       ========================= */
+    .wrap{max-width:1200px;margin:0 auto;padding:26px 18px 64px;}
 
     .bigTitle{
       font-family:"Refrigerator Deluxe", sans-serif;
@@ -79,28 +67,20 @@
       color:#1b2f49;
       margin:0 0 18px;
     }
+    @media (max-width:840px){ .bigTitle{font-size:40px;} }
 
-    @media (max-width:840px){
-      .bigTitle{font-size:40px}
-    }
-
-    /* =========================
-       Header / Controls
-       ========================= */
-
+    /* Header */
     .header{
-      background:var(--navy2);
-      color:#fff;
       border-radius:var(--radius);
       overflow:hidden;
+      background:var(--navy2);
+      color:#fff;
       box-shadow:0 10px 20px rgba(0,0,0,.08);
     }
-
     .headTop{
       padding:18px 18px 12px;
-      border-bottom:1px solid var(--border);
+      border-bottom:1px solid rgba(255,255,255,.10);
     }
-
     .headRow{
       display:flex;
       gap:14px;
@@ -108,19 +88,17 @@
       justify-content:space-between;
       flex-wrap:wrap;
     }
-
     .headKicker{
-      font-family:"Brix Sans";
       text-transform:uppercase;
       letter-spacing:.14em;
       font-weight:700;
+      color:rgba(255,255,255,.78);
       font-size:12px;
-      color:rgba(255,255,255,.75);
     }
-
     .headSelected{
       margin-top:10px;
       font-weight:700;
+      color:#fff;
       font-size:18px;
     }
 
@@ -130,34 +108,30 @@
       flex-wrap:wrap;
       align-items:flex-end;
     }
-
     .field{
       display:flex;
       flex-direction:column;
       gap:6px;
     }
-
     label{
       text-transform:uppercase;
       letter-spacing:.14em;
-      font-size:11px;
       font-weight:700;
-      color:rgba(255,255,255,.7);
+      color:rgba(255,255,255,.72);
+      font-size:11px;
     }
-
     select,input{
       background:rgba(255,255,255,.08);
-      border:1px solid var(--border);
+      border:1px solid rgba(255,255,255,.16);
       color:#fff;
       border-radius:9999px;
       padding:10px 12px;
-      font:700 13px/1 "Brix Sans", sans-serif;
+      font:700 13px/1 "Brix Sans", system-ui, sans-serif;
       outline:none;
     }
-
-    select option{color:#0b1220}
-
+    select option{color:#0b1220;}
     input{min-width:240px}
+    @media (max-width:520px){ input{min-width:160px} }
 
     .btn{
       all:unset;
@@ -168,262 +142,456 @@
       letter-spacing:.06em;
       text-transform:uppercase;
       font-size:12px;
-      background:rgba(255,255,255,.1);
-      border:1px solid var(--border);
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.18);
     }
-
+    .btn:hover{background:rgba(255,255,255,.14);}
     .count{
       margin-left:auto;
+      color:rgba(255,255,255,.78);
       font-weight:700;
-      color:rgba(255,255,255,.75);
+      white-space:nowrap;
     }
 
-    /* =========================
-       Header Map
-       ========================= */
-
-    .headMap{
-      padding:14px 18px 18px;
-    }
-
+    /* Header map */
+    .headMap{padding:14px 18px 18px;}
     .mapFrame{
       border-radius:20px;
       overflow:hidden;
-      border:1px solid var(--border);
+      border:1px solid rgba(255,255,255,.14);
       background:rgba(255,255,255,.06);
     }
+    .mapInner{padding:12px;}
+    .mapSvg{width:100%;height:150px;display:block;}
+    @media (max-width:640px){ .mapSvg{height:120px} }
 
-    .mapInner{padding:12px}
-
-    .mapSvg{
-      width:100%;
-      height:150px;
-      display:block;
-    }
-
-    /* =========================
-       Tiles
-       ========================= */
-
+    /* Tiles */
     .grid{
       margin-top:18px;
       display:grid;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:repeat(3, 1fr);
       gap:18px;
     }
-
-    @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+    @media (max-width:980px){ .grid{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:640px){ .grid{grid-template-columns:1fr} }
 
     .tile{
-      background:var(--navy);
-      color:#fff;
       border-radius:var(--radius);
       overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
+      background:var(--navy);
+      color:#fff;
+      box-shadow:0 10px 20px rgba(0,0,0,.10);
       cursor:pointer;
+      border:1px solid rgba(255,255,255,.08);
+      transform:translateY(0);
+      transition:transform 120ms ease, box-shadow 120ms ease;
     }
-
-    .tile.sel{
-      outline:4px solid rgba(0,179,199,.35);
-      outline-offset:2px;
-    }
+    .tile:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(0,0,0,.14);}
+    .tile.sel{outline:4px solid rgba(0,179,199,.35);outline-offset:2px;}
 
     .tileImg{
       height:170px;
       background:#0b1d33;
       position:relative;
+      overflow:hidden;
     }
-
     .tileImg img{
       width:100%;
       height:100%;
       object-fit:cover;
+      display:block;
       opacity:.55;
     }
-
     .tileImg::after{
       content:"";
-      position:absolute;
-      inset:0;
-      background:linear-gradient(180deg, rgba(19,42,70,.2), rgba(19,42,70,.85));
+      position:absolute;inset:0;
+      background:linear-gradient(180deg, rgba(19,42,70,.15), rgba(19,42,70,.86));
     }
 
-    .tileBody{
-      padding:18px;
-    }
-
+    .tileBody{padding:18px 18px 16px;}
     .tileTitle{
       font-family:"Refrigerator Deluxe", sans-serif;
-      font-size:34px;
       margin:0;
+      font-weight:800;
+      letter-spacing:.02em;
+      font-size:34px;
+      line-height:1.05;
     }
-
     .tileSub{
       margin-top:10px;
       font-size:18px;
       font-weight:600;
-      color:rgba(255,255,255,.85);
+      color:rgba(255,255,255,.88);
+      max-width:44ch;
     }
-
     .tileMeta{
       margin-top:14px;
       font-weight:700;
-      color:rgba(255,255,255,.8);
+      color:rgba(255,255,255,.82);
     }
 
+    .rowTop{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .statusPill{
+      display:inline-flex;align-items:center;gap:10px;
+      border-radius:9999px;
+      padding:9px 12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .dot{width:9px;height:9px;border-radius:50%;background:currentColor;}
+
+    .ctaRow{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .cta{
+      display:inline-flex;gap:10px;align-items:center;
+      padding:10px 14px;
+      border-radius:9999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-size:12px;
+      text-decoration:none;
+      cursor:pointer;
+    }
+    .cta.primary{border-color:rgba(0,179,199,.45);background:rgba(0,179,199,.18);}
+    .cta:hover{background:rgba(255,255,255,.12);}
+
+    /* Modal */
+    .backdrop{
+      position:fixed;inset:0;
+      background:rgba(11,18,32,.55);
+      display:none;align-items:center;justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .backdrop.on{display:flex}
+    .modal{
+      width:min(560px, 100%);
+      background:#fff;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 18px 50px rgba(0,0,0,.35);
+      border:1px solid rgba(0,0,0,.10);
+      color:#0b1220;
+      font-family:"Brix Sans", system-ui, sans-serif;
+    }
+    .mhead{
+      padding:14px 14px;
+      border-bottom:1px solid rgba(0,0,0,.10);
+      display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+    }
+    .mtitle{
+      margin:0;
+      font:800 18px/1.2 "Brix Sans", system-ui, sans-serif;
+    }
+    .msub{margin-top:4px;color:#536072;font-weight:600;font-size:13px}
+    .close{
+      all:unset;cursor:pointer;
+      padding:8px 10px;border-radius:10px;
+      border:1px solid rgba(0,0,0,.12);
+      font-weight:800;font-size:12px;
+    }
+    .mbody{padding:14px}
+    .kv{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin-top:8px}
+    .k{color:#536072;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+    .v{font-weight:700}
+    .v a{color:#0b66c3;text-decoration:none}
+    .v a:hover{text-decoration:underline}
+
+    /* Error */
+    .err{
+      margin-top:10px;
+      color:rgba(255,210,210,.95);
+      font-weight:800;
+    }
   </style>
 </head>
 
 <body>
-<div class="wrap">
-  <h1 class="bigTitle">Monitoring the<br>Pulse of our Planet</h1>
+  <div class="wrap">
+    <h1 class="bigTitle">Monitoring the<br>Pulse of our Planet</h1>
 
-  <section class="header">
-    <div class="headTop">
-      <div class="headRow">
+    <section class="header">
+      <div class="headTop">
+        <div class="headRow">
+          <div>
+            <div class="headKicker">Pier Instrumentation</div>
+            <div id="selectedLine" class="headSelected">Select an instrument to highlight its bent.</div>
+            <div id="err" class="err" style="display:none"></div>
+          </div>
+
+          <div class="controls">
+            <div class="field">
+              <label for="classSel">Sensor Class</label>
+              <select id="classSel"></select>
+            </div>
+            <div class="field">
+              <label for="statusSel">Status</label>
+              <select id="statusSel"></select>
+            </div>
+            <div class="field">
+              <label for="q">Search</label>
+              <input id="q" placeholder="Instrument name…" />
+            </div>
+            <button id="clear" class="btn" type="button">Clear</button>
+            <div id="count" class="count">Showing 0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="headMap">
+        <div class="mapFrame">
+          <div class="mapInner" id="map"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="grid" class="grid" aria-label="Instrumentation tiles"></section>
+  </div>
+
+  <!-- Owner modal -->
+  <div id="backdrop" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+    <div class="modal">
+      <div class="mhead">
         <div>
-          <div class="headKicker">Pier Instrumentation</div>
-          <div id="selectedLine" class="headSelected">
-            Select an instrument to highlight its bent.
-          </div>
+          <h2 id="mtitle" class="mtitle">Owner</h2>
+          <div id="msub" class="msub">—</div>
         </div>
-
-        <div class="controls">
-          <div class="field">
-            <label>Sensor Class</label>
-            <select id="classSel"></select>
-          </div>
-          <div class="field">
-            <label>Status</label>
-            <select id="statusSel"></select>
-          </div>
-          <div class="field">
-            <label>Search</label>
-            <input id="q" placeholder="Instrument name…" />
-          </div>
-          <button id="clear" class="btn">Clear</button>
-          <div id="count" class="count">Showing 0</div>
+        <button id="mclose" class="close" type="button">Close</button>
+      </div>
+      <div class="mbody">
+        <div class="kv">
+          <div class="k">PI</div><div id="mpi" class="v">—</div>
+          <div class="k">Email</div><div id="memail" class="v">—</div>
+          <div class="k">Phone</div><div id="mphone" class="v">—</div>
+          <div class="k">PI URL</div><div id="murl" class="v">—</div>
         </div>
       </div>
     </div>
-
-    <div class="headMap">
-      <div class="mapFrame">
-        <div class="mapInner" id="map"></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="grid" class="grid"></section>
-</div>
+  </div>
 
 <script>
-/* =========================
-   Geometry (from pier.svg)
-   ========================= */
+(() => {
+  /* ============================================================
+     CONFIG: set this to your published CSV URL (or pass ?csv=...)
+     ============================================================ */
+  const DEFAULT_CSV = ""; // <- paste your Google "Publish to web" CSV link here
 
-const OUTLINE_D = `M 16.293881,6.0807658 V 8.6397827 H 9.3667939 V 6.141744 H 4.4518951 V 26.857275 H 9.3667939 V 23.01875 h 6.9270871 v 1.21853 h 8.585337 V 22.210014 H 202.1334 V 10.724927 H 24.879218 V 6.0807658 Z`;
+  const PIER_BG_URL = new URL("./pierBACKGROUND.svg", location.href).toString();
 
-const X_BY_BENT = [
-  4.99,8.92,12.86,16.79,20.73,24.66,28.60,32.53,36.47,40.40,
-  44.34,48.27,52.21,56.14,60.08,64.01,67.95,71.88,75.82,79.75,
-  83.69,87.62,91.56,95.49,99.43,103.36,107.30,111.23,115.17,
-  119.10,123.04,126.97,130.91,134.84,138.78,142.71,146.65,
-  150.58,154.52,158.45,162.39,166.32,170.26,174.19,178.13,
-  182.06,186.00,189.93,193.87,197.80,201.74
-];
+  /* ============================================================
+     Geometry (from your pier.svg)
+     viewBox: 0 0 203.2 31.75
+     ============================================================ */
+  const OUTLINE_D = `M 16.293881,6.0807658 V 8.6397827 H 9.3667939 V 6.141744 H 4.4518951 V 26.857275 H 9.3667939 V 23.01875 h 6.9270871 v 1.21853 h 8.585337 V 22.210014 H 202.1334 V 10.724927 H 24.879218 V 6.0807658 Z`;
 
-const Y_BY_ROW = {A:9.7,B:13.0,C:16.3,D:19.6,E:22.9};
+  const X_BY_BENT = [
+    4.9879151,8.9228976,12.85788,16.792863,20.727845,24.662828,28.59781,32.532793,36.467775,40.402758,
+    44.33774,48.272723,52.207705,56.142688,60.07767,64.01265,67.94763,71.88262,75.8176,79.75258,
+    83.68756,87.62254,91.55752,95.4925,99.42748,103.36247,107.29745,111.23243,115.16741,119.10239,
+    123.03737,126.97235,130.90733,134.84232,138.7773,142.71228,146.64729,150.58227,154.51725,158.45223,
+    162.38722,166.3222,170.25718,174.19216,178.12715,182.06213,185.99711,189.93209,193.86708,197.80206,
+    201.73704
+  ];
+  const Y_BY_ROW = {A:9.7381561, B:13.059, C:16.30532, D:19.551639, E:22.872483};
 
-const xForBent = b => X_BY_BENT[51 - b];
-const yForRow  = r => Y_BY_ROW[r] || Y_BY_ROW.C;
-
-/* =========================
-   Header Map
-   ========================= */
-
-const BG = new URL("./pierBACKGROUND.svg", location.href).toString();
-
-function headerMap(sel){
-  if(!sel){
-    return `<svg class="mapSvg" viewBox="0 0 203.2 31.75">
-      <image href="${BG}" x="0" y="0" width="203.2" height="31.75" />
-    </svg>`;
+  function xForBent(b){
+    const bent = Number(b);
+    if (!Number.isFinite(bent) || bent < 1 || bent > 51) return X_BY_BENT[0];
+    return X_BY_BENT[51 - bent];
+  }
+  function yForRow(letter){
+    const L = String(letter || "").toUpperCase();
+    return Y_BY_ROW[L] ?? Y_BY_ROW.C;
   }
 
-  const cx = xForBent(sel.bent);
-  const cy = yForRow(sel.row);
-  const label = `Bent ${sel.bent}${sel.row}`;
+  /* ============================================================
+     DOM
+     ============================================================ */
+  const els = {
+    grid: document.getElementById("grid"),
+    map: document.getElementById("map"),
+    selectedLine: document.getElementById("selectedLine"),
+    count: document.getElementById("count"),
+    err: document.getElementById("err"),
 
-  return `
-  <svg class="mapSvg" viewBox="0 0 203.2 31.75">
-    <defs>
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="1.2"/>
-      </filter>
-    </defs>
+    classSel: document.getElementById("classSel"),
+    statusSel: document.getElementById("statusSel"),
+    q: document.getElementById("q"),
+    clear: document.getElementById("clear"),
 
-    <image href="${BG}" x="0" y="0" width="203.2" height="31.75"/>
+    backdrop: document.getElementById("backdrop"),
+    mclose: document.getElementById("mclose"),
+    mtitle: document.getElementById("mtitle"),
+    msub: document.getElementById("msub"),
+    mpi: document.getElementById("mpi"),
+    memail: document.getElementById("memail"),
+    mphone: document.getElementById("mphone"),
+    murl: document.getElementById("murl"),
+  };
 
-    <circle cx="${cx}" cy="${cy}" r="4.8" fill="#fff" opacity=".9" filter="url(#glow)"/>
-    <circle cx="${cx}" cy="${cy}" r="3.6" fill="none" stroke="#fff" stroke-width=".7"/>
-    <circle cx="${cx}" cy="${cy}" r="1.6" fill="#00b3c7"/>
+  /* ============================================================
+     Helpers
+     ============================================================ */
+  const norm = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, "_");
+  const looksLikeUrl = (s) => /^https?:\/\//i.test(String(s || "").trim());
 
-    <text x="${cx+8}" y="${cy-6}"
-          font-size="5.4"
-          font-weight="700"
-          fill="#0b1220"
-          font-family="Brix Sans">${label}</text>
-  </svg>`;
-}
+  function normalizeDriveUrl(u){
+    const s = String(u || "").trim();
+    if (!looksLikeUrl(s)) return "";
+    if (s.includes("drive.google.com")) {
+      let id = "";
+      const m1 = s.match(/\/file\/d\/([^/]+)/);
+      if (m1) id = m1[1];
+      const m2 = s.match(/[?&]id=([^&]+)/);
+      if (!id && m2) id = m2[1];
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+    return s;
+  }
 
-/* =========================
-   Demo Data (replace with CSV)
-   ========================= */
+  function parseCSV(text){
+    const rows=[]; let i=0, field="", row=[], inQ=false;
+    const pushF=()=>{ row.push(field); field=""; };
+    const pushR=()=>{ rows.push(row); row=[]; };
+    while(i<text.length){
+      const ch=text[i++];
+      if(inQ){
+        if(ch === '"'){
+          if(text[i] === '"'){ field += '"'; i++; } else inQ=false;
+        } else field += ch;
+      } else {
+        if(ch === '"') inQ=true;
+        else if(ch === ',') pushF();
+        else if(ch === '\r') {}
+        else if(ch === '\n'){ pushF(); pushR(); }
+        else field += ch;
+      }
+    }
+    pushF(); if(row.length) pushR();
+    if(rows.length < 2) return [];
+    const headers = rows[0].map(norm);
+    return rows.slice(1)
+      .filter(r => r.some(v => String(v||"").trim() !== ""))
+      .map(r => {
+        const obj={};
+        headers.forEach((h,idx)=> obj[h] = (r[idx] ?? "").toString());
+        return obj;
+      });
+  }
 
-const DATA = [
-  {id:"a", instrumentName:"Wind Station", blurb:"Wind speed & direction", sensorClass:"Meteorological", status:"Operational", bent:48, row:"C", img:"https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600"},
-  {id:"b", instrumentName:"CTD Package", blurb:"Temperature, conductivity, salinity", sensorClass:"Water Quality", status:"Limited", bent:37, row:"B", img:"https://images.unsplash.com/photo-1522163182402-834f871fd851?q=80&w=1600"},
-  {id:"c", instrumentName:"Water Level", blurb:"Nearshore gauge", sensorClass:"Hydrologic", status:"Out of Service", bent:50, row:"E", img:"https://images.unsplash.com/photo-1454789548928-9efd52dc4031?q=80&w=1600"}
-];
+  async function fetchText(url){
+    const u = new URL(url, location.href);
+    if (u.protocol === "http:" || u.protocol === "https:") u.searchParams.set("cb", String(Date.now()));
+    const res = await fetch(u.toString(), { cache:"no-cache" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const txt = await res.text();
+    if (/^\s*</.test(txt)) throw new Error("Got HTML back (not CSV). Make sure the Sheet is Published to web as CSV.");
+    return txt;
+  }
 
-let selectedId = null;
+  function statusColor(s){
+    const v = String(s||"").toLowerCase();
+    if (/(out\s*of\s*service|down|offline|broken)/.test(v)) return getComputedStyle(document.documentElement).getPropertyValue('--bad') || '#ff6b6b';
+    if (/(limited|unauthorized|restricted|degraded)/.test(v)) return getComputedStyle(document.documentElement).getPropertyValue('--warn') || '#ffb020';
+    if (/(setup|commission|install)/.test(v)) return getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00b3c7';
+    return getComputedStyle(document.documentElement).getPropertyValue('--good') || '#8bd17c';
+  }
 
-const grid = document.getElementById("grid");
-const mapEl = document.getElementById("map");
-const selectedLine = document.getElementById("selectedLine");
-const count = document.getElementById("count");
-const classSel = document.getElementById("classSel");
-const statusSel = document.getElementById("statusSel");
-const q = document.getElementById("q");
+  function safeIdFromRow(x, idx){
+    const base = `${x.instrumentName||"instrument"}|${x.bentNo||""}${x.bentLetter||""}|${x.sensorClass||""}|${idx}`;
+    return base.replace(/[^a-z0-9|_-]+/gi, "_");
+  }
 
-function render(){
-  grid.innerHTML = DATA.map(d => `
-    <article class="tile ${d.id===selectedId?'sel':''}" data-id="${d.id}">
-      <div class="tileImg"><img src="${d.img}"/></div>
-      <div class="tileBody">
-        <h2 class="tileTitle">${d.instrumentName}</h2>
-        <div class="tileSub">${d.blurb}</div>
-        <div class="tileMeta">${d.sensorClass} • Bent ${d.bent}${d.row}</div>
-      </div>
-    </article>
-  `).join("");
+  /* ============================================================
+     Mapping from sheet headers
+     ============================================================ */
+  function first(obj, keys){
+    for (const k of keys){
+      const nk = norm(k);
+      if (obj[nk] != null && String(obj[nk]).trim() !== "") return String(obj[nk]).trim();
+    }
+    return "";
+  }
 
-  const sel = DATA.find(d => d.id===selectedId);
-  mapEl.innerHTML = headerMap(sel);
-  selectedLine.textContent = sel
-    ? `${sel.instrumentName} — Bent ${sel.bent}${sel.row}`
-    : "Select an instrument to highlight its bent.";
+  function mapRow(r, idx){
+    const instrumentName = first(r, ["Instrument Name", "Instrument"]);
+    const sensorClass = first(r, ["Sensor Class"]);
+    const dataCollected = first(r, ["Data Collected"]);
+    const wetDry = first(r, ["Wet or Dry", "Wet/Dry"]);
+    const status = first(r, ["Status"]);
 
-  count.textContent = `Showing ${DATA.length}`;
+    const bentNo = first(r, ["Bent No.", "Bent No"]);
+    const bentLetter = first(r, ["Bent Letter"]);
+    const mllw = first(r, ["MLLW (m)", "MLLW"]);
 
-  grid.querySelectorAll(".tile").forEach(t=>{
-    t.onclick=()=>{selectedId=t.dataset.id; render();}
-  });
-}
+    const imageRaw = first(r, ["Image", "Image URL"]);
+    const image = normalizeDriveUrl(imageRaw) || (looksLikeUrl(imageRaw) ? imageRaw : "");
 
-render();
-</script>
-</body>
-</html>
+    // Data URL: only show Data button if this is a real URL
+    const urlDataRaw = first(r, ["URL for Data", "Data URL"]);
+    const urlData = looksLikeUrl(urlDataRaw) ? urlDataRaw.trim() : "";
+
+    // Owner details
+    const piName = first(r, ["PI Name or number", "PI"]);
+    const phone = first(r, ["Phone"]);
+    const email = first(r, ["Email"]);
+    const piUrlRaw = first(r, ["URL for PI", "PI URL"]);
+    const piUrl = looksLikeUrl(piUrlRaw) ? piUrlRaw.trim() : "";
+
+    const id = safeIdFromRow({ instrumentName, bentNo, bentLetter, sensorClass }, idx);
+
+    // Use Data Collected as the short “tile blurb”
+    const blurb = dataCollected ? dataCollected : "";
+
+    return {
+      id,
+      instrumentName,
+      blurb,
+      sensorClass,
+      wetDry,
+      status,
+      bentNo: bentNo ? Number(bentNo) : null,
+      bentLetter: String(bentLetter||"").toUpperCase(),
+      mllw,
+      image,
+      urlData,
+      owner: { piName, phone, email, piUrl },
+    };
+  }
+
+  /* ============================================================
+     Header map (uses your SVG background + pier silhouette + callout)
+     ============================================================ */
+  function headerPierSvg(sel){
+    // Always render background
+    if(!sel || !sel.bentNo){
+      return `
+        <svg class="mapSvg" viewBox="0 0 203.2 31.75" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pier map">
+          <image href="${PIER_BG_URL}" x="0" y="0" width="203.2" height="31.75" preserveAspectRatio="none" />
+          <path d="${OUTLINE_D}" fill="rgba(185,189,195,.95)" stroke="rgba(255,255,255,.10)" stroke-width="0.25"/>
+        </svg>
+      `;
+    }
+
+    const cx = xForBent(sel.bentNo);
+    const cy = yForRow(sel.bentLetter);
+    const label = `Bent ${sel.bentNo}${sel.bentLetter}`;
+
+    // callout positioning
+    const placeRight = cx < 140;
+    const lx = Math.max(6, Math.min(p
