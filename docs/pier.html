@@ -738,4 +738,138 @@
     const classes = ["All", ...unique(ALL.map(x=>x.sensorClass).filter(Boolean)).sort((a,b)=>a.localeCompare(b))];
     els.classSel.innerHTML = classes.map(x => `<option value="${x}">${x}</option>`).join("");
 
-    cons
+    const statuses = ["All", ...unique(ALL.map(x=>x.status).filter(Boolean)).sort((a,b)=>a.localeCompare(b))];
+    els.statusSel.innerHTML = statuses.map(x => `<option value="${x}">${x}</option>`).join("");
+  }
+
+  function render(){
+    const c = els.classSel.value || "All";
+    const s = els.statusSel.value || "All";
+    const q = (els.q.value || "").trim().toLowerCase();
+
+    filtered = ALL.filter(d => {
+      if (c !== "All" && d.sensorClass !== c) return false;
+      if (s !== "All" && d.status !== s) return false;
+      if (q && !String(d.instrumentName||"").toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    const sel = filtered.find(d => d.id === selectedId) || null;
+
+    // NEW: dots based on filtered items
+    const dots = uniqueBentDots(filtered);
+
+    els.map.innerHTML = headerPierSvg(sel, dots);
+    els.selectedLine.textContent = sel
+      ? `${sel.instrumentName} — Bent ${sel.bentNo}${sel.bentLetter}`
+      : "Select an instrument to highlight its bent.";
+
+    els.count.textContent = `Showing ${filtered.length}`;
+
+    els.grid.innerHTML = filtered.map(d => {
+      const col = statusColor(d.status).trim() || "#8bd17c";
+      const loc = d.bentNo ? `Bent ${d.bentNo}${d.bentLetter}` : "Bent —";
+      const meta = `${d.sensorClass || "—"} • ${loc}`;
+
+      const ownerLabel = d.owner?.piName ? d.owner.piName : "Owner";
+      const dataBtn = d.urlData
+        ? `<a class="cta primary" href="${d.urlData}" target="_blank" rel="noopener">Data</a>`
+        : ``;
+
+      const img = d.image
+        ? `<img src="${d.image}" alt="" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"
+                onerror="this.remove()">`
+        : ``;
+
+      return `
+        <article class="tile ${d.id===selectedId ? "sel":""}" data-id="${d.id}">
+          <div class="tileImg">${img}</div>
+          <div class="tileBody">
+            <div class="rowTop">
+              <div>
+                <h2 class="tileTitle">${d.instrumentName || "Unnamed"}</h2>
+                <div class="tileSub">${d.blurb || ""}</div>
+              </div>
+              <div class="statusPill" style="color:${col}">
+                <span class="dot"></span>${d.status || "Operational"}
+              </div>
+            </div>
+
+            <div class="tileMeta">${meta}</div>
+
+            <div class="ctaRow">
+              ${dataBtn}
+              <button class="cta" type="button" data-owner="${d.id}">${ownerLabel}</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    // click tile to select
+    els.grid.querySelectorAll(".tile").forEach(tile => {
+      tile.addEventListener("click", (e) => {
+        const target = e.target;
+        if (target && target.closest && target.closest("button[data-owner]")) return;
+        selectedId = tile.dataset.id;
+        render();
+      });
+    });
+
+    // owner buttons
+    els.grid.querySelectorAll("button[data-owner]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-owner");
+        const item = ALL.find(x => x.id === id) || filtered.find(x => x.id === id);
+        if (item) openOwnerModal(item);
+      });
+    });
+  }
+
+  /* ============================================================
+     Init + Load CSV
+     ============================================================ */
+  async function init(){
+    try{
+      const params = new URLSearchParams(location.search);
+      const csvUrl = getCsvUrlFromParams(params) || DEFAULT_CSV;
+
+      if (!csvUrl) {
+        throw new Error("No CSV configured. Add ?csv=... or set DEFAULT_CSV in pier.html.");
+      }
+
+      const txt = await fetchText(csvUrl);
+      const raw = parseCSV(txt);
+
+      ALL = raw.map(mapRow).filter(x => x.instrumentName || x.sensorClass || x.bentNo);
+
+      buildFilterOptions();
+
+      // wire events
+      els.classSel.addEventListener("change", () => { selectedId=null; render(); });
+      els.statusSel.addEventListener("change", () => { selectedId=null; render(); });
+      els.q.addEventListener("input", () => { selectedId=null; render(); });
+
+      els.clear.addEventListener("click", () => {
+        els.classSel.value = "All";
+        els.statusSel.value = "All";
+        els.q.value = "";
+        selectedId = null;
+        render();
+      });
+
+      render();
+    } catch (e){
+      console.error(e);
+      els.err.style.display = "block";
+      els.err.textContent = `Couldn’t load spreadsheet:\n${e.message || e}`;
+      els.count.textContent = "Showing 0";
+      els.map.innerHTML = headerPierSvg(null, []);
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
