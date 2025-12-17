@@ -443,16 +443,29 @@
   function normalizeDriveUrl(u){
     const s = String(u || "").trim();
     if (!looksLikeUrl(s)) return "";
+  
+    // already good
+    if (s.startsWith("https://lh3.googleusercontent.com/d/")) return s;
+  
+    // drive.usercontent.google.com/download?id=FILE_ID...
+    if (s.includes("drive.usercontent.google.com")) {
+      const m = s.match(/[?&]id=([^&]+)/);
+      if (m && m[1]) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+    }
+  
+    // drive.google.com/file/d/FILE_ID/...
     if (s.includes("drive.google.com")) {
       let id = "";
       const m1 = s.match(/\/file\/d\/([^/]+)/);
       if (m1) id = m1[1];
       const m2 = s.match(/[?&]id=([^&]+)/);
       if (!id && m2) id = m2[1];
-      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+      if (id) return `https://lh3.googleusercontent.com/d/${id}`;
     }
+  
     return s;
   }
+
 
   function first(obj, keys){
     for (const k of keys){
@@ -549,8 +562,12 @@
     const bentLetter = String(first(r, ["Bent Letter"]) || "").toUpperCase();
     const mllw = first(r, ["MLLW (m)", "MLLW"]);
 
-    const imageRaw = first(r, ["Image", "Image URL"]);
-    const image = normalizeDriveUrl(imageRaw) || (looksLikeUrl(imageRaw) ? imageRaw : "");
+    // Image: prefer directimageURL if present
+    const imageRaw = first(r, ["directimageURL", "direct image url", "Image URL", "Image"]);
+    const image =
+      normalizeDriveUrl(imageRaw) ||
+      (looksLikeUrl(imageRaw) ? imageRaw.trim() : "");
+
 
     const urlDataRaw = first(r, ["URL for Data", "Data URL"]);
     const urlData = looksLikeUrl(urlDataRaw) ? urlDataRaw.trim() : "";
@@ -721,7 +738,11 @@
         ? `<a class="cta primary" href="${d.urlData}" target="_blank" rel="noopener">Data</a>`
         : ``;
 
-      const img = d.image ? `<img src="${d.image}" alt="" onerror="this.remove()">` : ``;
+      const img = d.image
+        ? `<img src="${d.image}" alt="" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"
+               onerror="this.remove()">`
+        : ``;
+
 
       return `
         <article class="tile ${d.id===selectedId ? "sel":""}" data-id="${d.id}">
