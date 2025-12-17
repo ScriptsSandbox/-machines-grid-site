@@ -2,608 +2,428 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pier Instrumentation</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
   <style>
+    /* =========================
+       Local Fonts
+       ========================= */
+
+    @font-face {
+      font-family: "Brix Sans";
+      src: url("./fonts/HvDTrial_BrixSans-Light-BF64c337930afcd.otf") format("opentype");
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Brix Sans";
+      src: url("./fonts/HvDTrial_BrixSans-Bold-BF64c33792e9cc8.otf") format("opentype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Refrigerator Deluxe";
+      src: url("./fonts/Refrigerator Deluxe Heavy.otf") format("opentype");
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    /* =========================
+       Variables & Base
+       ========================= */
+
     :root{
-      --bg:#747678;
-      --card:#fff;
-      --edge:#E2E8F0;
-      --muted:#64748B;
-      --ink:#0F172A;
-      --aqua:#00C6D7;
-      --green:#6E963B;
-      --orange:#F59E0B;
-      --red:#EF4444;
-      --chip:#EAFBFD;
-    }
-    html,body{margin:0;padding:0;background:var(--bg);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
-    .wrap{max-width:1200px;margin:0 auto;padding:24px 16px 56px}
-
-    /* Top panel */
-    .top{background:var(--card);border:1px solid var(--edge);border-radius:16px;padding:16px;box-shadow:0 8px 14px rgba(0,0,0,.05)}
-    .row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-    h1{margin:0;font-size:1.8rem;font-weight:800;letter-spacing:.2px}
-    .sub{margin-top:4px;color:var(--muted);font-size:.95rem}
-
-    .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .search{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid rgba(0,0,0,.10);border-radius:9999px;background:#fff}
-    .search input{border:0;outline:0;font:inherit;width:240px}
-    @media (max-width: 520px){ .search input{width:160px} }
-
-    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-    .chipBtn{all:unset}
-    .chip{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:7px 12px;border-radius:9999px;border:1px solid rgba(0,0,0,.10);
-      background:#fff;color:var(--ink);font-weight:700;font-size:.8rem;user-select:none;cursor:pointer;
-    }
-    .chip.on{outline:3px solid rgba(0,198,215,.30);outline-offset:1px}
-    .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
-
-    /* Grid */
-    .masonry{column-width:370px;column-gap:16px;margin-top:16px}
-    @media (max-width: 900px){.masonry{column-width:100%}}
-    .item{break-inside:avoid;margin:0 0 16px}
-
-    /* Card */
-    .card{background:var(--card);border:1px solid var(--edge);border-radius:16px;overflow:hidden;box-shadow:0 8px 14px rgba(0,0,0,.05)}
-    .card:hover{box-shadow:0 12px 18px rgba(0,0,0,.07)}
-    .img{height:160px;background:#E5E7EB;overflow:hidden}
-    .img img{width:100%;height:100%;object-fit:cover;display:block}
-    .body{padding:12px 14px 14px}
-
-    .head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-    .title{font-size:1.25rem;font-weight:800;line-height:1.2;margin:0}
-    .meta{margin-top:4px;color:var(--muted);font-weight:600;font-size:.92rem}
-
-    .pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .pill{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:6px 10px;border-radius:9999px;border:1px solid rgba(0,0,0,.08);
-      background:var(--chip);font-weight:700;font-size:.78rem;color:#036672
+      --bg:#ffffff;
+      --ink:#0b1220;
+      --muted:#8aa0b8;
+      --navy:#132a46;
+      --navy2:#0f243a;
+      --border:rgba(255,255,255,.14);
+      --accent:#00b3c7;
+      --radius:26px;
     }
 
-    .status{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:9999px;border:1.5px solid rgba(0,0,0,.08);
-      font-weight:700;background:#fff;white-space:nowrap;font-size:.82rem
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--ink);
     }
 
-    /* Location */
-    .loc{margin-top:12px;border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden}
-    .locTop{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;background:#F8FAFC}
-    .locTitle{font-weight:800;font-size:.95rem}
-    .locBadges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .badge{padding:6px 10px;border-radius:9999px;border:1px solid rgba(0,0,0,.08);background:#fff;font-weight:700;font-size:.78rem}
-
-    .locBody{padding:10px 12px}
-    .pierBar{position:relative;height:12px;border-radius:9999px;background:#F1F5F9;border:1px solid #E5E7EB;overflow:hidden}
-    .pierBar .wide{position:absolute;left:0;top:0;bottom:0;width:14%;background:#EEF2F7}
-    .pierBar .markerHalo{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(0,198,215,.18)}
-    .pierBar .markerDot{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);background:#00C6D7}
-    .pierScale{display:flex;justify-content:space-between;margin-top:6px;color:#64748B;font-size:.74rem;font-weight:700}
-    .pierCaption{margin-top:6px;color:#64748B;font-size:.82rem;font-weight:600}
-
-    /* Measures */
-    .section{margin-top:12px}
-    .sectionTitle{font-size:.95rem;font-weight:800;margin:0 0 8px 0}
-    .list{margin:0;padding-left:18px}
-    .list li{margin:4px 0}
-
-    .rangeBox{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px dashed rgba(0,0,0,.18);background:#fff}
-    .rangeBox .hint{color:var(--muted);font-weight:600;font-size:.86rem}
-    .rangeText{margin-top:6px;white-space:pre-wrap;font-weight:600}
-
-    /* Actions */
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .btn{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 12px;border-radius:9999px;border:1px solid rgba(0,0,0,.10);
-      background:#fff;font-weight:800;font-size:.85rem;text-decoration:none;color:inherit;cursor:pointer
+    body{
+      font:16px/1.45 "Brix Sans", system-ui, -apple-system, sans-serif;
     }
-    .btn.primary{border-color:rgba(0,198,215,.35);background:rgba(0,198,215,.10)}
-    .icon{width:22px;height:22px;border-radius:9999px;background:#E0F2FE;color:#0369A1;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:.9rem}
 
-    /* Modal */
-    .modalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
-    .modalBackdrop.on{display:flex}
-    .modal{
-      width:min(520px, 100%);
-      background:#fff;border:1px solid var(--edge);border-radius:16px;
-      box-shadow:0 18px 40px rgba(0,0,0,.25);
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:26px 18px 64px;
+    }
+
+    /* =========================
+       Page Title
+       ========================= */
+
+    .bigTitle{
+      font-family:"Refrigerator Deluxe", sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-size:56px;
+      line-height:1.02;
+      color:#1b2f49;
+      margin:0 0 18px;
+    }
+
+    @media (max-width:840px){
+      .bigTitle{font-size:40px}
+    }
+
+    /* =========================
+       Header / Controls
+       ========================= */
+
+    .header{
+      background:var(--navy2);
+      color:#fff;
+      border-radius:var(--radius);
       overflow:hidden;
+      box-shadow:0 10px 20px rgba(0,0,0,.08);
     }
-    .modalHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 14px;border-bottom:1px solid var(--edge)}
-    .modalTitle{margin:0;font-size:1.1rem;font-weight:800}
-    .modalClose{all:unset;cursor:pointer;padding:8px 10px;border-radius:10px;border:1px solid rgba(0,0,0,.12);font-weight:800}
-    .modalBody{padding:14px}
-    .kv{display:grid;grid-template-columns: 140px 1fr;gap:8px 12px;margin-top:10px}
-    .k{color:var(--muted);font-weight:700}
-    .v{font-weight:700}
-    .v a{color:#2563EB;text-decoration:none}
-    .v a:hover{text-decoration:underline}
+
+    .headTop{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--border);
+    }
+
+    .headRow{
+      display:flex;
+      gap:14px;
+      align-items:flex-end;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .headKicker{
+      font-family:"Brix Sans";
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-weight:700;
+      font-size:12px;
+      color:rgba(255,255,255,.75);
+    }
+
+    .headSelected{
+      margin-top:10px;
+      font-weight:700;
+      font-size:18px;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    label{
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-size:11px;
+      font-weight:700;
+      color:rgba(255,255,255,.7);
+    }
+
+    select,input{
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--border);
+      color:#fff;
+      border-radius:9999px;
+      padding:10px 12px;
+      font:700 13px/1 "Brix Sans", sans-serif;
+      outline:none;
+    }
+
+    select option{color:#0b1220}
+
+    input{min-width:240px}
+
+    .btn{
+      all:unset;
+      cursor:pointer;
+      border-radius:9999px;
+      padding:10px 14px;
+      font-weight:800;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:12px;
+      background:rgba(255,255,255,.1);
+      border:1px solid var(--border);
+    }
+
+    .count{
+      margin-left:auto;
+      font-weight:700;
+      color:rgba(255,255,255,.75);
+    }
+
+    /* =========================
+       Header Map
+       ========================= */
+
+    .headMap{
+      padding:14px 18px 18px;
+    }
+
+    .mapFrame{
+      border-radius:20px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+    }
+
+    .mapInner{padding:12px}
+
+    .mapSvg{
+      width:100%;
+      height:150px;
+      display:block;
+    }
+
+    /* =========================
+       Tiles
+       ========================= */
+
+    .grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+
+    .tile{
+      background:var(--navy);
+      color:#fff;
+      border-radius:var(--radius);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      cursor:pointer;
+    }
+
+    .tile.sel{
+      outline:4px solid rgba(0,179,199,.35);
+      outline-offset:2px;
+    }
+
+    .tileImg{
+      height:170px;
+      background:#0b1d33;
+      position:relative;
+    }
+
+    .tileImg img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:.55;
+    }
+
+    .tileImg::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(180deg, rgba(19,42,70,.2), rgba(19,42,70,.85));
+    }
+
+    .tileBody{
+      padding:18px;
+    }
+
+    .tileTitle{
+      font-family:"Refrigerator Deluxe", sans-serif;
+      font-size:34px;
+      margin:0;
+    }
+
+    .tileSub{
+      margin-top:10px;
+      font-size:18px;
+      font-weight:600;
+      color:rgba(255,255,255,.85);
+    }
+
+    .tileMeta{
+      margin-top:14px;
+      font-weight:700;
+      color:rgba(255,255,255,.8);
+    }
+
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="row">
+<div class="wrap">
+  <h1 class="bigTitle">Monitoring the<br>Pulse of our Planet</h1>
+
+  <section class="header">
+    <div class="headTop">
+      <div class="headRow">
         <div>
-          <h1 id="pageTitle">Pier Instrumentation</h1>
-          <div id="count" class="sub">Loading…</div>
-        </div>
-        <div class="controls">
-          <div class="search" title="Search Instrument Name">
-            <span style="color:var(--muted);font-weight:700">Search</span>
-            <input id="search" value="" placeholder="Instrument name…" />
+          <div class="headKicker">Pier Instrumentation</div>
+          <div id="selectedLine" class="headSelected">
+            Select an instrument to highlight its bent.
           </div>
-          <button id="clear" class="chip" type="button">Clear</button>
         </div>
-      </div>
 
-      <div class="sub" style="margin-top:10px">Sensor Class</div>
-      <div id="classChips" class="chips"></div>
-
-      <div class="sub" style="margin-top:10px">Status</div>
-      <div id="statusChips" class="chips"></div>
-
-      <div id="err" class="sub" style="margin-top:10px;color:#FEE2E2;display:none;font-weight:800"></div>
-    </div>
-
-    <div id="grid" class="masonry"></div>
-  </div>
-
-  <!-- Owner modal -->
-  <div id="modalBackdrop" class="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal">
-      <div class="modalHead">
-        <div>
-          <h2 id="modalTitle" class="modalTitle">Owner</h2>
-          <div id="modalSubtitle" class="sub" style="margin:4px 0 0 0">—</div>
-        </div>
-        <button id="modalClose" class="modalClose" type="button">Close</button>
-      </div>
-      <div class="modalBody">
-        <div class="kv">
-          <div class="k">PI</div><div class="v" id="m_pi">—</div>
-          <div class="k">Email</div><div class="v" id="m_email">—</div>
-          <div class="k">Phone</div><div class="v" id="m_phone">—</div>
-          <div class="k">PI URL</div><div class="v" id="m_url">—</div>
+        <div class="controls">
+          <div class="field">
+            <label>Sensor Class</label>
+            <select id="classSel"></select>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="statusSel"></select>
+          </div>
+          <div class="field">
+            <label>Search</label>
+            <input id="q" placeholder="Instrument name…" />
+          </div>
+          <button id="clear" class="btn">Clear</button>
+          <div id="count" class="count">Showing 0</div>
         </div>
       </div>
     </div>
-  </div>
+
+    <div class="headMap">
+      <div class="mapFrame">
+        <div class="mapInner" id="map"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="grid" class="grid"></section>
+</div>
 
 <script>
-(() => {
-  // If you omit ?csv=..., this default is used.
-  const DEFAULT_CSV =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPfuUmpWyeMlzZZrwbGRBYjDdo9gKL1HN9LDfe-OVAfT8xrHHCtRG-q_L4kBSCtUcMkFIQG3J_ydqx/pub?gid=0&single=true&output=csv";
+/* =========================
+   Geometry (from pier.svg)
+   ========================= */
 
-  const els = {
-    title: document.getElementById("pageTitle"),
-    count: document.getElementById("count"),
-    err: document.getElementById("err"),
-    grid: document.getElementById("grid"),
-    classChips: document.getElementById("classChips"),
-    statusChips: document.getElementById("statusChips"),
-    clear: document.getElementById("clear"),
-    search: document.getElementById("search"),
+const OUTLINE_D = `M 16.293881,6.0807658 V 8.6397827 H 9.3667939 V 6.141744 H 4.4518951 V 26.857275 H 9.3667939 V 23.01875 h 6.9270871 v 1.21853 h 8.585337 V 22.210014 H 202.1334 V 10.724927 H 24.879218 V 6.0807658 Z`;
 
-    modalBackdrop: document.getElementById("modalBackdrop"),
-    modalClose: document.getElementById("modalClose"),
-    modalTitle: document.getElementById("modalTitle"),
-    modalSubtitle: document.getElementById("modalSubtitle"),
-    m_pi: document.getElementById("m_pi"),
-    m_email: document.getElementById("m_email"),
-    m_phone: document.getElementById("m_phone"),
-    m_url: document.getElementById("m_url"),
-  };
+const X_BY_BENT = [
+  4.99,8.92,12.86,16.79,20.73,24.66,28.60,32.53,36.47,40.40,
+  44.34,48.27,52.21,56.14,60.08,64.01,67.95,71.88,75.82,79.75,
+  83.69,87.62,91.56,95.49,99.43,103.36,107.30,111.23,115.17,
+  119.10,123.04,126.97,130.91,134.84,138.78,142.71,146.65,
+  150.58,154.52,158.45,162.39,166.32,170.26,174.19,178.13,
+  182.06,186.00,189.93,193.87,197.80,201.74
+];
 
-  const BRAND = { aqua:"#00C6D7", green:"#6E963B", orange:"#F59E0B", red:"#EF4444" };
+const Y_BY_ROW = {A:9.7,B:13.0,C:16.3,D:19.6,E:22.9};
 
-  // URL params
-  const params = new URLSearchParams(location.search);
-  const pageTitle = params.get("title") || "Pier Instrumentation";
-  document.title = pageTitle;
-  els.title.textContent = pageTitle;
+const xForBent = b => X_BY_BENT[51 - b];
+const yForRow  = r => Y_BY_ROW[r] || Y_BY_ROW.C;
 
-  // robust csv= parsing (encoded or not)
-  const csvParam = params.get("csv");
-  let csvUrl = csvParam ? decodeURIComponent(csvParam) : DEFAULT_CSV;
-  for (const k of ["gid","single","output"]) {
-    const v = params.get(k);
-    if (v && !new RegExp(`[?&]${k}=`).test(csvUrl)) {
-      csvUrl += (csvUrl.includes("?") ? "&" : "?") + `${k}=${encodeURIComponent(v)}`;
-    }
+/* =========================
+   Header Map
+   ========================= */
+
+const BG = new URL("./pierBACKGROUND.svg", location.href).toString();
+
+function headerMap(sel){
+  if(!sel){
+    return `<svg class="mapSvg" viewBox="0 0 203.2 31.75">
+      <image href="${BG}" x="0" y="0" width="203.2" height="31.75" />
+    </svg>`;
   }
 
-  // utilities
-  const esc = (s) => (s ?? "").toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const norm = (s) => (s ?? "").toString().trim().toLowerCase().replace(/\s+/g,"_");
-  function first(obj, keys){
-    for (const k of keys){
-      const nk = norm(k);
-      if (obj[nk] != null && String(obj[nk]).trim() !== "") return String(obj[nk]).trim();
-    }
-    return "";
-  }
-  function looksLikeUrl(s){ return /^https?:\/\//i.test(String(s||"").trim()); }
+  const cx = xForBent(sel.bent);
+  const cy = yForRow(sel.row);
+  const label = `Bent ${sel.bent}${sel.row}`;
 
-  function normalizeDriveUrl(u){
-    const s = String(u||"").trim();
-    if (!looksLikeUrl(s)) return "";
-    if (s.includes("drive.google.com")) {
-      let id = "";
-      const m1 = s.match(/\/file\/d\/([^/]+)/);
-      if (m1) id = m1[1];
-      const m2 = s.match(/[?&]id=([^&]+)/);
-      if (!id && m2) id = m2[1];
-      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
-    }
-    return s;
-  }
+  return `
+  <svg class="mapSvg" viewBox="0 0 203.2 31.75">
+    <defs>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="1.2"/>
+      </filter>
+    </defs>
 
-  function splitList(s){
-    const t = String(s||"").replace(/\r/g,"").trim();
-    if(!t) return [];
-    // split on newline, comma, semicolon
-    return t.split(/\n|,|;/).map(x=>x.trim()).filter(Boolean);
-  }
+    <image href="${BG}" x="0" y="0" width="203.2" height="31.75"/>
 
-  function statusColor(s){
-    const v = String(s||"").toLowerCase();
-    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return BRAND.red;
-    if (/(unauthorized|no\s*access|restricted|limited|degraded|partial)/.test(v)) return BRAND.orange;
-    if (/(setup|commission|install|deploy)/.test(v)) return BRAND.aqua;
-    return BRAND.green;
-  }
-  function bucketStatus(s){
-    const v = String(s||"").toLowerCase();
-    if (/(down|offline|out\s*of\s*service|broken|fail)/.test(v)) return "out";
-    if (/(unauthorized|no\s*access|restricted|limited|degraded|partial)/.test(v)) return "limited";
-    if (/(setup|commission|install|deploy)/.test(v)) return "setup";
-    return "operational";
-  }
+    <circle cx="${cx}" cy="${cy}" r="4.8" fill="#fff" opacity=".9" filter="url(#glow)"/>
+    <circle cx="${cx}" cy="${cy}" r="3.6" fill="none" stroke="#fff" stroke-width=".7"/>
+    <circle cx="${cx}" cy="${cy}" r="1.6" fill="#00b3c7"/>
 
-  function parseCSV(text){
-    const rows=[]; let i=0, field="", row=[], inQ=false;
-    const pushF=()=>{ row.push(field); field=""; };
-    const pushR=()=>{ rows.push(row); row=[]; };
-    while(i<text.length){
-      const ch=text[i++];
-      if(inQ){
-        if(ch === '"'){
-          if(text[i] === '"'){ field += '"'; i++; } else inQ=false;
-        } else field += ch;
-      } else {
-        if(ch === '"') inQ=true;
-        else if(ch === ',') pushF();
-        else if(ch === '\r') {}
-        else if(ch === '\n'){ pushF(); pushR(); }
-        else field += ch;
-      }
-    }
-    pushF(); if(row.length) pushR();
-    if(rows.length < 2) return [];
-    const headers = rows[0].map(norm);
-    return rows.slice(1)
-      .filter(r => r.some(v => String(v||"").trim() !== ""))
-      .map(r => {
-        const obj={};
-        headers.forEach((h,idx)=> obj[h] = (r[idx] ?? "").toString());
-        return obj;
-      });
-  }
+    <text x="${cx+8}" y="${cy-6}"
+          font-size="5.4"
+          font-weight="700"
+          fill="#0b1220"
+          font-family="Brix Sans">${label}</text>
+  </svg>`;
+}
 
-  async function fetchText(url){
-    const u = new URL(url, location.href);
-    if (u.protocol === "http:" || u.protocol === "https:") u.searchParams.set("cb", String(Date.now()));
-    const res = await fetch(u.toString(), { cache:"no-cache" });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const txt = await res.text();
-    if (/^\s*</.test(txt)) throw new Error("Got HTML back (not CSV). Make sure the Sheet is Published to web as CSV, and csv= is URL-encoded (or let this page stitch gid/single/output).");
-    return txt;
-  }
+/* =========================
+   Demo Data (replace with CSV)
+   ========================= */
 
-  // Map your sheet columns
-  function mapRow(r){
-    const instrumentName = first(r, ["Instrument Name","Instrument","Name"]);
-    const sensorClass = first(r, ["Sensor Class"]);
-    const dataCollectedRaw = first(r, ["Data Collected"]);
-    const wetDry = first(r, ["Wet or Dry","Wet/Dry"]);
-    const status = first(r, ["Status"]);
-    const sensingRange = first(r, ["Sensing Range"]);
+const DATA = [
+  {id:"a", instrumentName:"Wind Station", blurb:"Wind speed & direction", sensorClass:"Meteorological", status:"Operational", bent:48, row:"C", img:"https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600"},
+  {id:"b", instrumentName:"CTD Package", blurb:"Temperature, conductivity, salinity", sensorClass:"Water Quality", status:"Limited", bent:37, row:"B", img:"https://images.unsplash.com/photo-1522163182402-834f871fd851?q=80&w=1600"},
+  {id:"c", instrumentName:"Water Level", blurb:"Nearshore gauge", sensorClass:"Hydrologic", status:"Out of Service", bent:50, row:"E", img:"https://images.unsplash.com/photo-1454789548928-9efd52dc4031?q=80&w=1600"}
+];
 
-    const bentNo = first(r, ["Bent No.","Bent No"]);
-    const bentLetter = first(r, ["Bent Letter"]);
-    const mllw = first(r, ["MLLW (m)","MLLW"]);
+let selectedId = null;
 
-    const img = normalizeDriveUrl(first(r, ["Image","Image URL"]));
+const grid = document.getElementById("grid");
+const mapEl = document.getElementById("map");
+const selectedLine = document.getElementById("selectedLine");
+const count = document.getElementById("count");
+const classSel = document.getElementById("classSel");
+const statusSel = document.getElementById("statusSel");
+const q = document.getElementById("q");
 
-    const urlDataRaw = first(r, ["URL for Data","Data URL"]);
-    const urlData = looksLikeUrl(urlDataRaw) ? urlDataRaw.trim() : ""; // requirement: only if filled with URL
-
-    const piName = first(r, ["PI Name or number","PI"]);
-    const piPhone = first(r, ["Phone"]);
-    const piEmail = first(r, ["Email"]);
-    const piUrlRaw = first(r, ["URL for PI","PI URL"]);
-    const piUrl = looksLikeUrl(piUrlRaw) ? piUrlRaw.trim() : "";
-
-    const installed = first(r, ["Installed"]);
-    const termination = first(r, ["Termination"]);
-
-    return {
-      instrumentName,
-      sensorClass,
-      dataCollected: splitList(dataCollectedRaw),
-      wetDry,
-      status,
-      sensingRange,
-
-      bentNo, bentLetter, mllw,
-
-      img,
-      urlData,
-
-      owner: { piName, piPhone, piEmail, piUrl },
-
-      installed, termination,
-
-      _raw: r
-    };
-  }
-
-  // Filters state
-  let ALL = [];
-  let classSel = "All";
-  const statusSel = new Set();
-  let searchTerm = "";
-
-  const STATUS_FILTERS = [
-    {k:"operational", label:"Operational", color:BRAND.green},
-    {k:"limited", label:"Limited", color:BRAND.orange},
-    {k:"out", label:"Out of Service", color:BRAND.red},
-    {k:"setup", label:"In Setup", color:BRAND.aqua},
-  ];
-
-  function chipHTML(label, color, on, withDot){
-    return `<span class="chip ${on ? "on":""}" style="color:${esc(color)}">${withDot ? `<span class="dot"></span>`:""}${esc(label)}</span>`;
-  }
-
-  function renderFilters(){
-    // Sensor Class chips from data
-    const classes = ["All", ...Array.from(new Set(ALL.map(x=>x.sensorClass).filter(Boolean))).sort((a,b)=>a.localeCompare(b))];
-    els.classChips.innerHTML = classes.map(c =>
-      `<button class="chipBtn" type="button" data-class="${esc(c)}">${chipHTML(c, BRAND.aqua, classSel===c, false)}</button>`
-    ).join("");
-
-    els.classChips.querySelectorAll("button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        classSel = btn.getAttribute("data-class") || "All";
-        render();
-      });
-    });
-
-    // Status chips
-    els.statusChips.innerHTML = STATUS_FILTERS.map(s =>
-      `<button class="chipBtn" type="button" data-stat="${s.k}">${chipHTML(s.label, s.color, statusSel.has(s.k), true)}</button>`
-    ).join("");
-
-    els.statusChips.querySelectorAll("button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const k = btn.getAttribute("data-stat");
-        if (!k) return;
-        if (statusSel.has(k)) statusSel.delete(k); else statusSel.add(k);
-        render();
-      });
-    });
-  }
-
-  function pierMarkerPercent(bentNo){
-    const b = parseInt(String(bentNo||""), 10);
-    if (!Number.isFinite(b)) return 0;
-    // 51 at 0%, 1 at 100%
-    const t = (51 - b) / (51 - 1);
-    return Math.max(0, Math.min(1, t)) * 100;
-  }
-
-  function cardHTML(x){
-    const col = statusColor(x.status);
-    const bg = `rgba(${parseInt(col.slice(1,3),16)},${parseInt(col.slice(3,5),16)},${parseInt(col.slice(5,7),16)},0.12)`;
-    const bd = `rgba(${parseInt(col.slice(1,3),16)},${parseInt(col.slice(3,5),16)},${parseInt(col.slice(5,7),16)},0.22)`;
-
-    const bentText = x.bentNo ? `Bent ${esc(x.bentNo)}${esc(x.bentLetter||"")}` : "Bent —";
-    const mllwText = x.mllw ? `MLLW ${esc(x.mllw)} m` : "MLLW —";
-    const pct = pierMarkerPercent(x.bentNo);
-
-    const measures = (x.dataCollected && x.dataCollected.length)
-      ? `<ul class="list">${x.dataCollected.slice(0,6).map(m => `<li>${esc(m)}</li>`).join("")}</ul>`
-      : `<div class="sub">—</div>`;
-
-    const rangeBlock = x.sensingRange
-      ? `<div class="rangeBox">
-           <div class="hint">Sensing Range</div>
-           <div class="rangeText">${esc(x.sensingRange)}</div>
-         </div>`
-      : ``;
-
-    const dataBtn = x.urlData
-      ? `<a class="btn primary" href="${esc(x.urlData)}" target="_blank" rel="noopener"><span class="icon">📈</span>Data</a>`
-      : ``;
-
-    const ownerLabel = x.owner.piName ? x.owner.piName : "Owner";
-
-    return `
-      <div class="item">
-        <div class="card">
-          <div class="img">${x.img ? `<img src="${esc(x.img)}" alt="" onerror="this.remove()">` : ``}</div>
-          <div class="body">
-            <div class="head">
-              <div>
-                <h2 class="title">${esc(x.instrumentName || "Unnamed instrument")}</h2>
-                <div class="meta">${esc(x.sensorClass || "—")} • ${esc(x.dataCollected.join(", ") || "—")} • ${esc(x.wetDry || "—")}</div>
-                <div class="pillrow">
-                  ${x.sensorClass ? `<span class="pill">Sensor Class: ${esc(x.sensorClass)}</span>` : ``}
-                  ${x.wetDry ? `<span class="pill">Wet/Dry: ${esc(x.wetDry)}</span>` : ``}
-                </div>
-              </div>
-              <div class="status" style="color:${esc(col)};background:${bg};border-color:${bd}">
-                <span class="dot"></span>${esc(x.status || "Operational")}
-              </div>
-            </div>
-
-            <div class="loc">
-              <div class="locTop">
-                <div class="locTitle">Location on Pier</div>
-                <div class="locBadges">
-                  <div class="badge">${bentText}</div>
-                  <div class="badge">${mllwText}</div>
-                </div>
-              </div>
-              <div class="locBody">
-                <div class="pierBar" data-bent="${esc(x.bentNo)}">
-                  <div class="wide" title="Wide section (46–51)"></div>
-                  <div class="markerHalo" style="left:${pct}%"></div>
-                  <div class="markerDot" style="left:${pct}%"></div>
-                </div>
-                <div class="pierScale"><span>51</span><span>46</span><span>1</span></div>
-                <div class="pierCaption">Graphic = rough (1–51 with wide/narrow split). Text = precise.</div>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="sectionTitle">What it measures</div>
-              ${measures}
-              ${rangeBlock}
-            </div>
-
-            <div class="actions">
-              ${dataBtn}
-              <button
-                class="btn"
-                type="button"
-                data-owner="1"
-                data-instrument="${esc(x.instrumentName || "")}"
-                data-pi="${esc(x.owner.piName || "")}"
-                data-phone="${esc(x.owner.piPhone || "")}"
-                data-email="${esc(x.owner.piEmail || "")}"
-                data-url="${esc(x.owner.piUrl || "")}"
-              ><span class="icon">👤</span>${esc(ownerLabel)}</button>
-            </div>
-          </div>
-        </div>
+function render(){
+  grid.innerHTML = DATA.map(d => `
+    <article class="tile ${d.id===selectedId?'sel':''}" data-id="${d.id}">
+      <div class="tileImg"><img src="${d.img}"/></div>
+      <div class="tileBody">
+        <h2 class="tileTitle">${d.instrumentName}</h2>
+        <div class="tileSub">${d.blurb}</div>
+        <div class="tileMeta">${d.sensorClass} • Bent ${d.bent}${d.row}</div>
       </div>
-    `;
-  }
+    </article>
+  `).join("");
 
-  function render(){
-    const filtered = ALL.filter(x => {
-      if (classSel !== "All" && x.sensorClass !== classSel) return false;
-      if (statusSel.size){
-        const b = bucketStatus(x.status);
-        if (!statusSel.has(b)) return false;
-      }
-      if (searchTerm){
-        const t = (x.instrumentName || "").toLowerCase();
-        if (!t.includes(searchTerm)) return false;
-      }
-      return true;
-    });
+  const sel = DATA.find(d => d.id===selectedId);
+  mapEl.innerHTML = headerMap(sel);
+  selectedLine.textContent = sel
+    ? `${sel.instrumentName} — Bent ${sel.bent}${sel.row}`
+    : "Select an instrument to highlight its bent.";
 
-    els.count.textContent = `Showing ${filtered.length} of ${ALL.length}`;
-    els.grid.innerHTML = filtered.map(cardHTML).join("");
+  count.textContent = `Showing ${DATA.length}`;
 
-    // wire owner buttons
-    els.grid.querySelectorAll('button[data-owner="1"]').forEach(btn => {
-      btn.addEventListener("click", () => openOwnerModal({
-        instrument: btn.dataset.instrument || "",
-        pi: btn.dataset.pi || "",
-        phone: btn.dataset.phone || "",
-        email: btn.dataset.email || "",
-        url: btn.dataset.url || ""
-      }));
-    });
-  }
-
-  function openOwnerModal(d){
-    els.modalTitle.textContent = d.pi ? d.pi : "Owner";
-    els.modalSubtitle.textContent = d.instrument ? `Instrument: ${d.instrument}` : "";
-
-    els.m_pi.textContent = d.pi || "—";
-
-    els.m_email.innerHTML = d.email
-      ? `<a href="mailto:${esc(d.email)}">${esc(d.email)}</a>`
-      : "—";
-
-    // keep phone clickable if it looks like a phone number
-    els.m_phone.innerHTML = d.phone
-      ? `<a href="tel:${esc(d.phone)}">${esc(d.phone)}</a>`
-      : "—";
-
-    els.m_url.innerHTML = (d.url && looksLikeUrl(d.url))
-      ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a>`
-      : (d.url ? esc(d.url) : "—");
-
-    els.modalBackdrop.classList.add("on");
-  }
-
-  function closeModal(){
-    els.modalBackdrop.classList.remove("on");
-  }
-
-  els.modalClose.addEventListener("click", closeModal);
-  els.modalBackdrop.addEventListener("click", (e) => {
-    if (e.target === els.modalBackdrop) closeModal();
+  grid.querySelectorAll(".tile").forEach(t=>{
+    t.onclick=()=>{selectedId=t.dataset.id; render();}
   });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
-  });
+}
 
-  els.clear.addEventListener("click", () => {
-    classSel = "All";
-    statusSel.clear();
-    searchTerm = "";
-    els.search.value = "";
-    renderFilters();
-    render();
-  });
-
-  els.search.addEventListener("input", () => {
-    searchTerm = (els.search.value || "").trim().toLowerCase();
-    render();
-  });
-
-  // boot
-  (async () => {
-    try{
-      const txt = await fetchText(csvUrl);
-      const raw = parseCSV(txt);
-      ALL = raw.map(mapRow);
-
-      // If Instrument Name is missing for many rows, still render — but flag it.
-      const missingNames = ALL.filter(x => !(x.instrumentName || "").trim()).length;
-      renderFilters();
-      render();
-      if (missingNames > 0){
-        // quiet warning
-        els.err.style.display = "block";
-        els.err.textContent = `Note: ${missingNames} row(s) are missing “Instrument Name”.`;
-      }
-    }catch(e){
-      els.err.style.display = "block";
-      els.err.textContent = `Couldn’t load data: ${e.message}`;
-      els.count.textContent = "0 items";
-    }
-  })();
-})();
+render();
 </script>
 </body>
 </html>
